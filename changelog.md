@@ -20,11 +20,27 @@ correction.
 
 ## Unreleased
 
+### Refresh the generated CorOS 4.1.0 model catalog
+
+The generated API now covers 420 factory models and 148 fixed option enums,
+including the new delay, pitch, morph, reverb, compressor, and EQ models exposed
+by the connected unit. The catalog also renamed several existing public enum
+classes as their sharing context changed; `tests/test_options.py` records the
+complete published-name set. Generators and their hardware comparison now use
+UTF-8 explicitly, preserving non-ASCII labels on Windows.
+
+### Rename the unit and drive preset undo/redo
+
+`set_device_name()` changes the name shown by the device with a sparse Version
+update. `undo()` and `redo()` drive the unit's native editable-preset history;
+their four-byte wire payloads and live state transitions are pinned by tests.
+
 ### The offline suite is portable to Windows checkouts
 
 Hardware-gate diagnostics now spell repository-relative paths consistently on
 every platform, and the historical namespace fixture's pinned hash tolerates
-Git's CRLF checkout conversion while still hashing all source content.
+Git's CRLF checkout conversion while still hashing all source content. Catalog
+generators also write UTF-8 explicitly instead of inheriting Windows' code page.
 
 ### Read which global modules DSP load inhibited
 

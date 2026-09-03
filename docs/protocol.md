@@ -1855,7 +1855,7 @@ and the asymmetry is load-bearing for anyone maintaining a cached preset:
 * Block bypass is still unmeasured: its test skips unless the target block already
   carries a stored bypass entry. See `tests/hardware/test_write_echo.py`.
 
-## `PresetDirty` announces a CHANGE of flag, not an edit
+## `PresetDirty` usually announces a flag transition, but may restate it
 
 The `Grid` echo above arrives for every edit. `PresetDirty` does not, and the
 difference matters to anything watching one to learn about the other.
@@ -1869,17 +1869,16 @@ everything the unit sent in the two seconds after each:
 | `false` | a `Grid` echo **and** a `PresetDirty` carrying `is_dirty: true` |
 | `true` | a `Grid` echo, and nothing else at all |
 
-So `PresetDirty` is an announcement about the FLAG, and the flag only changes once
-until something clears it. A save clears it (confirmed earlier, watched flipping
-across a save). Writing an edited parameter back to the value it had did NOT clear
-it within the same connection, which is worth knowing before treating a restore as
-an undo.
+That remains the common behaviour, but it is not an invariant. On 2026-09-03 the
+same d14e unit also emitted `PresetDirty{is_dirty:true}` after a parameter write
+whose immediately preceding READ already returned true. A save clears the flag
+(watched flipping across a save). Writing an edited parameter back to its prior
+value does not clear it, which is worth knowing before treating a restore as undo.
 
 This corrects "also pushed unsolicited ... on edits", which was true of the edit
 that first dirties a preset and read as though it were true of every edit. Anything
-waiting for a `PresetDirty` to confirm an edit landed will wait out its timeout on
-an already-dirty preset - correctly, since the unit really did not say anything.
-The `Grid` echo is the per-edit signal.
+Waiting for `PresetDirty` to confirm an edit can therefore either confirm or time
+out on an already-dirty preset. The `Grid` echo is the reliable per-edit signal.
 
 ## Connect burst, measured
 
@@ -2699,8 +2698,10 @@ visually on the device's own screen.
 | `io_settings` / `set_input_level` / `set_output_level` | `IOSettings{READ}` / `{UPDATE, settings{in_port` or `out_port{port_id, level}}}` | read-back | sparse and port-keyed; also reports impedance, type, ground lift and `plugged` |
 | `global_eq` / `set_global_eq_bypassed` | `GlobalEQ{READ}` / `{UPDATE, bypassed}` | read-back | five bands reported as 28 parameters |
 | `inhibited_modules` | `CompilerInhibitedModules{READ}` | read-back | UPDATE reply carries both explicit booleans: `global_gate` and `global_eq`; confirmed on Quad Cortex, CorOS 4.1.0 / d14e |
+| `set_device_name` | `Version{UPDATE, custom_name}` | read-back + reconnect | sparse update; exact payload begins `08 01 7a <len>`, and no other identity field is sent |
+| `undo` / `redo` | `UndoRedo{UPDATE, undo:true}` / `{redo:true}` | preset read-back | exact payloads `08 01 28 01` and `08 01 30 01`; bypass edit was reversed/reapplied on a scratch preset, then explicitly restored |
 | `mode` / `set_mode` | `Mode{READ}` / `{UPDATE, mode}` | read-back | a slot index; `available_modes` lists the configured slots |
-| `preset_dirty` | `PresetDirty{READ}` | request_id echo | answers as UPDATE in 2-11 ms (two hardware sessions); `is_dirty` has no presence, absent IS false; flips false across a save; also pushed unsolicited, but only when the flag CHANGES - see below |
+| `preset_dirty` | `PresetDirty{READ}` | request_id echo | answers as UPDATE in 2-11 ms (two hardware sessions); `is_dirty` has no presence, absent IS false; flips false across a save; unsolicited pushes usually follow a flag change but can restate true - see below |
 | `set_gig_view` | `ShowGigView{UPDATE, show}` | read-back + on-unit | `show` has no presence |
 | `set_param(LaneInput(row), ...)` | `Grid{UPDATE, preset{chains{row, input_control{hash: 28000, params{index, param_values}}}}}` | read-back | the per-row noise gate; NOISE REDUCTION, BYPASS and INPUT GAIN all confirmed in both directions, per-scene included. GAIN REDUCTION is a meter (`grMeter`), not a control |
 | `free_rows` | reads `models[]` + `Chain.split_control_points` | read-back | rows available for an independent chain: excludes the lane row of a branch, which is spoken for even when empty |

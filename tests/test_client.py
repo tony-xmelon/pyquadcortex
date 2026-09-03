@@ -463,6 +463,34 @@ def test_move_preset_sends_file_move():
 # -- session hello -------------------------------------------------------------
 
 
+def test_set_device_name_sends_a_sparse_version_update():
+    qc = client.QuadCortex(FakeTransport())
+
+    qc.set_device_name("Stage QC")
+
+    sent = qc._t.sent[-1]
+    assert isinstance(sent, pa.VersionMessage)
+    assert sent.SerializeToString() == b"\x08\x01\x7a\x08Stage QC"
+
+
+def test_undo_and_redo_send_the_confirmed_sparse_updates():
+    qc = client.QuadCortex(FakeTransport())
+
+    qc.undo()
+    undo = qc._t.sent[-1]
+    assert isinstance(undo, pa.UndoRedoMessage)
+    assert undo.SerializeToString() == b"\x08\x01\x28\x01"
+    assert undo.HasField("undo")
+    assert not undo.HasField("redo")
+
+    qc.redo()
+    redo = qc._t.sent[-1]
+    assert isinstance(redo, pa.UndoRedoMessage)
+    assert redo.SerializeToString() == b"\x08\x01\x30\x01"
+    assert redo.HasField("redo")
+    assert not redo.HasField("undo")
+
+
 def test_hello_performs_full_connect_handshake():
     canned = {"ResetCommsBuffersMessage": pa.ResetCommsBuffersMessage(session_id="ab")}
     qc = client.QuadCortex(FakeTransport(canned))
@@ -1297,6 +1325,31 @@ def test_read_current_preset_push_hands_back_the_whole_reply():
     assert isinstance(asked, pa.RecallPresetMessage)
     assert asked.action == pa.MessageAction.READ
     assert asked.HasField("request_id")
+
+
+def test_read_current_preset_retries_a_dropped_first_request():
+    push = pa.RecallPresetMessage(action=pa.MessageAction.UPDATE, request_id=2)
+    push.preset.name = "second answer"
+
+    class DropsFirst(StateTransport):
+        def __init__(self):
+            super().__init__(push)
+            self.calls = 0
+
+        def await_broadcast(self, expected_class, trigger, timeout=40.0,
+                            match=None):
+            trigger()
+            self.calls += 1
+            if self.calls == 1:
+                raise TimeoutError("first request dropped")
+            self.matches.append(match)
+            return self.push
+
+    transport = DropsFirst()
+    got = client.QuadCortex(transport).read_current_preset()
+    assert got.name == "second answer"
+    assert transport.calls == 2
+    assert [message.request_id for message in transport.sent] == [1, 2]
 
 
 def test_loaded_position_reads_the_slot_without_recalling_it():

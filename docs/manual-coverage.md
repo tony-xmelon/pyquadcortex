@@ -20,7 +20,7 @@ or a field in `BinaryPreset`. A named candidate is a lead, not a claim that it w
 
 ## Summary
 
-Of 105 features audited: **66 yes**, **7 partly**, **21 no**, **11 n/a**.
+Of 105 features audited: **68 yes**, **7 partly**, **19 no**, **11 n/a**.
 
 Of the 93 features a host could plausibly drive - everything above except the 11 marked
 n/a - **66 are fully covered** and 7 more are partly covered, which here means the state
@@ -111,11 +111,11 @@ which this document had over-read as unreachable, and it answers a READ perfectl
 | Expression pedal assignment to a parameter | yes | `set_expression(target, param, pedal, minimum, maximum)` and `clear_expression(target, param)`, against ANY target. The sweep ends are positions of the parameter being assigned, so they take its own typed values - `maximum=Db(3.2)` on a lane VOLUME - a block, the lane output or input, the mixer, the splitter. Confirmed on all of them, on float AND `switch`-typed parameters: parameter type is irrelevant, and the manual gives every assignable parameter a MIN/MAX sweep |
 | Expression pedal on a Lane Output MUTE or SOLO | no | the first refusal in the library, and the one ADR-0007's shape was settled on. The device silently drops a host write of those two in both directions while accepting the byte-identical message on VOLUME, so they raise `ControlNotDrivable` (ADR-0007). The touchscreen writes the same field and the library reads it back |
 | Expression bypass (heel-toe / switch / stop) | yes | `set_expression_bypass()` with `ExpressionSwitchMode`. All three confirmed: STOP 0, SWITCH 1, HEEL_TOE 2 - not the manual's listed order. The unit labels the control SWITCH ON, and the mode decides which of the other two exist: SWITCH greys out SWITCH DELAY, HEEL_TOE greys out LATCH EMULATION. The same `expression_bypass_info` carries a lane MUTE's and SOLO's settings, one slot per switch parameter |
-| Expression pedal calibration | partly | the flow IS `IOSettings`, as guessed: calibrating a pedal on the unit broadcasts `exp_port{exp_port_id, calibrating: true}` and `false` on completion, for EXP 1 and EXP 2 alike. Observed, never driven from the host |
-| Set Parameters as Defaults | no | `DefaultParameters` is decoded and subscribed; never written |
+| Expression pedal calibration | partly | the flow IS `IOSettings`: calibrating on the unit broadcasts `exp_port{exp_port_id, calibrating: true}` and `false` on completion. A host UPDATE with the same shape was driven on an unplugged EXP 1; the unit answered/stayed `false`, so the request shape is plausible but acceptance and completion still require a connected pedal |
+| Set Parameters as Defaults | no | `DefaultParameters{READ}` answers with an empty message; a row/column-qualified READ did not answer. No write was guessed because the previous persistent default could not be read and restored |
 | Looper X: place the block | yes | it is an ordinary catalog model |
 | Looper X: transport actions and parameters | partly | `looper()` reads the full status and `LooperState` names five states including OVERDUBBING. The transport is not driven from here; MIDI CC#48-61 is the documented route |
-| Undo / redo | no | `UndoRedo` is decoded and subscribed. It arrives after accepted grid edits - useful as an acceptance signal |
+| Undo / redo | yes | `undo()` and `redo()` send sparse `UndoRedo{UPDATE}` commands. On a scratch preset, undo restored a bypass edit and redo reapplied it; the original bypass was then restored and the preset saved clean |
 
 ## 05 The Directory
 
@@ -185,7 +185,7 @@ on 25, 9 and 56 as `led_brightness` was 28, 13 and 59).
 | STOMP MODE BYPASS (auto-assign on load) | yes | `update_settings(stomp_mode_auto_assign=...)`, confirmed writable |
 | HOLD TIMING, SWAP TEMPO AND TUNER, GIG VIEW ACCESS | yes | all three confirmed writable via `update_settings()`. `set_hold_timing()` takes `Milliseconds` and writes the index the device stores - the unit offers 500-1000 ms in 100 ms steps and the field is the index, confirmed by reading 3 while the screen showed 800 ms. `hold_timing_ms()` reads it back |
 | LATENCY COMPENSATION | yes | `update_settings(enable_dynamic_delay_compensation=...)`, confirmed writable |
-| Device name | no | candidate `Serialization`, `GeneralSettings` |
+| Device name | yes | `set_device_name()` sends sparse `Version{UPDATE, custom_name}`; live read-back matched, and restoring the prior name survived reconnect |
 | Firmware and serial | yes | `version()` |
 | Diagnostics (DSP, footswitches, USB) | no | `ModuleStats` is decoded and subscribed; `Diagnostics`, `DSPCommsDiagnostics` are not |
 | CorOS updates | no | `Updater` is decoded and subscribed; never driven. Risky to explore |

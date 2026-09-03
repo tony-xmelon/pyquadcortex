@@ -1291,13 +1291,13 @@ the n/a rows below where they intersect the API at all.
 | Expression pedal assignment (MIN/MAX, reverse) | `param.expression` | yes | reversal by min>max, as documented |
 | Expression bypass: three modes | `block.expression_bypass.mode` | yes | wire order differs from the manual's listing - absorbed |
 | Expression bypass: INVERT RANGE / SWITCH DELAY / LATCH EMULATION | `bypass.invert`, `bypass.switch_delay_ms`, `bypass.latch_emulation` | yes | `ExpressionBypassInfo{invert, delay_ms, latch_emulation}`; `delay_ms` is real milliseconds. SWITCH DELAY is greyed out in Switch mode, so it applies to Heel-Toe and Stop only, and LATCH EMULATION is greyed out in Heel-Toe mode - the two are mutually exclusive in the modes measured |
-| Expression pedal calibration | **omitted** | no | global setting; candidate `IOSettings`, unexplored |
-| Set Parameters as Defaults | **omitted** | no | `DefaultParameters` decoded, never written |
+| Expression pedal calibration | **omitted** | partly | `IOSettings.exp_port.calibrating`; a host start request was refused while the port was unplugged, so acceptance/completion remains unverified |
+| Set Parameters as Defaults | **omitted** | no | unqualified READ is empty and a cell-qualified READ times out; no restorable write established |
 | Looper X: place the block | `row.place()` - an ordinary virtual device | yes | |
 | Looper X: parameters | `LooperBlock.params` | yes | |
 | Looper X: transport actions | **omitted**; `LooperBlock.state` is readable | partly | transport is not drivable over USB; MIDI CC#48-61 is the documented route |
 | Assign Looper X Actions (footswitch layout) | `device.settings.looper_actions` | yes | `GeneralSettings.looper_stomp_assignments` - GLOBAL, not per preset. Eight entries indexed by footswitch, each the Looper X parameter index. The MIDI CC follows the action, not the switch |
-| Undo / redo | **omitted** | no | `UndoRedo` arrives as an acceptance signal only; never driven |
+| Undo / redo | `undo()` / `redo()` on protocol client | yes | sparse `UndoRedo{UPDATE, undo/redo: true}`; verified on scratch bypass state and restored |
 
 ## Chapter 5 - The Directory
 
@@ -1372,7 +1372,7 @@ the n/a rows below where they intersect the API at all.
 | GIG VIEW ACCESS | `settings.gig_view_access` | yes | |
 | LATENCY COMPENSATION | `settings.latency_compensation` | yes | |
 | MIDI submenu | `settings.midi` | partly | see ch. 8 row |
-| Device name | **omitted** | no | candidates `Serialization`/`GeneralSettings`, unexplored |
+| Device name | protocol `set_device_name()` | yes | sparse `Version{UPDATE, custom_name}`; exact read-back and reconnect restoration verified |
 | Firmware and serial (Device Information) | `device.firmware`, `device.serial` | yes | |
 | Diagnostics / Send Report | **omitted** | no | decoded but never driven |
 | 3rd-party licenses | - | n/a | reference text |
@@ -1383,7 +1383,7 @@ the n/a rows below where they intersect the API at all.
 |---|---|---|---|
 | USB audio channels, DI vs processed, host monitoring | `io.usb` covers the on-unit controls | partly | channel-map routing choices live in unexplored `IOSettings`; host driver/DAW concerns are n/a |
 | Everything Cortex Control mirrors from the unit | the same objects above | n/a | this library is an alternative client to the same protocol |
-| CC-only: device name display/edit | **omitted** | no | see Device name row |
+| CC-only: device name display/edit | protocol `version().custom_name` / `set_device_name()` | yes | see Device name row |
 | CC-only: per-scene tempo claim | **omitted** | n/a | contradicts the unit; on-unit presentation wins |
 | CC-only: preset / plugin-preset / IR import from computer | **omitted** | no | candidate `File` with payloads; the import flow is unsolved (and IR import probing is hazardous - see CLAUDE.md) |
 | CC-only: local backups | **omitted** | no | `LocalBackup` unexplored |
