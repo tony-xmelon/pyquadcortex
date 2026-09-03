@@ -1271,7 +1271,7 @@ the n/a rows below where they intersect the API at all.
 | Move a block (drag) | `block.move_to()` | yes | cross-row move creates a branch, as on screen |
 | DSP capacity refusal | `CapacityError` | partly | detected not predicted; no headroom read exists |
 | CPU Monitor | **omitted** | no | `CPULoad` never arrives on the wire |
-| Global EQ / Input Gate auto-disable under load | `global_eq.auto_disabled` (and gate equivalent) | partly | `CompilerInhibitedModules` arrives on grid edits; surfacing it is new API |
+| Global EQ / Input Gate auto-disable under load | `global_eq.auto_disabled` (and gate equivalent) | yes | protocol `inhibited_modules()` reads `CompilerInhibitedModules`; the model properties remain to be added |
 | Input blocks: assign input source | `row.input.source` | yes | |
 | Input Gate Control | `row.input.gate` | yes | per scene; GAIN REDUCTION is a meter, n/a |
 | Output blocks: assign destination | `row.output.destination` | yes | rows, sends, USB, Multi-Out |

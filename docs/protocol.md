@@ -2698,6 +2698,7 @@ visually on the device's own screen.
 | `set_scene_bypass_behavior` | `GeneralSettings{UPDATE, scene_block_bypass}` | read-back | global, and it decides what `set_bypass` persists |
 | `io_settings` / `set_input_level` / `set_output_level` | `IOSettings{READ}` / `{UPDATE, settings{in_port` or `out_port{port_id, level}}}` | read-back | sparse and port-keyed; also reports impedance, type, ground lift and `plugged` |
 | `global_eq` / `set_global_eq_bypassed` | `GlobalEQ{READ}` / `{UPDATE, bypassed}` | read-back | five bands reported as 28 parameters |
+| `inhibited_modules` | `CompilerInhibitedModules{READ}` | read-back | UPDATE reply carries both explicit booleans: `global_gate` and `global_eq`; confirmed on Quad Cortex, CorOS 4.1.0 / d14e |
 | `mode` / `set_mode` | `Mode{READ}` / `{UPDATE, mode}` | read-back | a slot index; `available_modes` lists the configured slots |
 | `preset_dirty` | `PresetDirty{READ}` | request_id echo | answers as UPDATE in 2-11 ms (two hardware sessions); `is_dirty` has no presence, absent IS false; flips false across a save; also pushed unsolicited, but only when the flag CHANGES - see below |
 | `set_gig_view` | `ShowGigView{UPDATE, show}` | read-back + on-unit | `show` has no presence |

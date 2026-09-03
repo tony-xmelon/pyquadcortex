@@ -20,6 +20,13 @@ correction.
 
 ## Unreleased
 
+### Read which global modules DSP load inhibited
+
+`inhibited_modules()` reads the two booleans the unit reports when processing
+load automatically disables the Input Gate or Global EQ. The reader requires
+both optional fields to be explicitly present, so protobuf's absent-field
+default cannot be mistaken for a real false state.
+
 ### The wrong unit is now caught before the code runs
 
 ```python
