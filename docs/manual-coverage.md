@@ -20,12 +20,12 @@ or a field in `BinaryPreset`. A named candidate is a lead, not a claim that it w
 
 ## Summary
 
-Of 105 features audited: **68 yes**, **7 partly**, **19 no**, **11 n/a**.
+Of 106 features audited: **68 yes**, **7 partly**, **20 no**, **11 n/a**.
 
-Of the 93 features a host could plausibly drive - everything above except the 11 marked
+Of the 94 features a host could plausibly drive - everything above except the 11 marked
 n/a - **66 are fully covered** and 7 more are partly covered, which here means the state
 is readable and at least one field of it is confirmed writable, with the neighbours the
-same shape but not individually exercised. Only 20 remain untouched.
+same shape but not individually exercised. Only 21 remain untouched.
 
 Both paragraphs now count the same table. They had drifted apart: this one still read
 91/65/13/14 from an earlier revision, which no longer matched a row-by-row count.
@@ -78,13 +78,14 @@ which this document had over-read as unreachable, and it answers a READ perfectl
 | I/O: USB LEVEL, HP SOURCE, DRY/WET | yes | `set_usb_port()`, all three confirmed writable. Like the other I/O ports they must travel one field per message, which the method now does for you. The headphone output's own level is NOT writable |
 | Global EQ: bypass, 5 bands (type/gain/freq/Q/bypass), output assignment | yes | `set_global_eq(band, gain=, frequency=, q=, filter_type=, enabled=)`, `set_global_eq_output(level=, out12=, out34=)` and `set_global_eq_bypassed()`. Every control is reachable. `gain` takes `Db` over -12..+12 - the MANUAL's span on two points, queued to be driven on screen - while `frequency`, `q` and the OUT level take `Encoded`, their mappings being unknown |
 | Power off, reboot, Be Right Back, screen lock | n/a | physical, via the unit's power button |
-| Footswitch presses, touch gestures, encoders | n/a | physical |
+| Footswitch presses, touch gestures, encoders | n/a | physical; the normal USB protocol has semantic commands but no generic coordinate/touch injection message |
 
 ## 04 The Grid
 
 | Feature | Status | Detail |
 |---|---|---|
 | Grid layout: 4 rows x 8 slots | yes | `blocks()`; rows are 0-based here and 1-4 on screen |
+| Select a block / open its parameter editor on the unit | no | Cortex Control exposes a "Parameter Editor" button annotated internally as "SHOW ON QC", but no differential bus capture is available. `GridModelMeter{row, column}` is the only cell-addressed candidate; hardware-safe `READ`/`UPDATE`/`DELETE` probes were state-neutral and silent, so no API is exposed. See `protocol.md` section 7.7c |
 | Which rows are free for a new chain | yes | `free_rows()`, which excludes a branch's lane row |
 | Browse the virtual device list | yes | `catalog` - the device's own ModelRepo, so it covers purchased and captured content |
 | Pin a device to the top of its category | yes | `pin_model()` / `unpin_model()` / `pinned_models()`. The write carries NO action field - an UPDATE is ignored - and pinning APPENDS rather than replacing |

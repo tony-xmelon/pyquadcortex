@@ -252,5 +252,6 @@ library was established.
 to need adjusting, and do not build on it.
 
 Cortex Control must be quit, since it holds the USB interface exclusively. That also
-means you cannot capture Cortex Control's own traffic this way on macOS - for that you
-need a USB analyser at the bus level.
+means a decoded listener cannot capture Cortex Control's own outbound traffic on either
+of the tested desktop platforms. For that differential you need a USB analyser at the
+bus level (for example USBPcap on Windows), not a second HID client.
