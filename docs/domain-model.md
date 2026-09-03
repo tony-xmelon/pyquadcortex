@@ -1222,7 +1222,7 @@ the n/a rows below where they intersect the API at all.
 | Master Volume level | `device.master_volume.level` | yes | writable, contrary to what this row said for several releases - the "accepted and ignored" measurement was a stale read. A separate gain stage downstream of the port levels, so writing it changes no `IOSettings` level. The model should reject anything outside 0..1, as the library now does |
 | Master Volume output assignment | `device.master_volume.outputs` | yes | |
 | Master Volume knob function | `system.master_volume_knob` | yes | the manual documents this row under ch. 10 System Settings, not ch. 3 |
-| Footswitch presses, touch gestures, encoders | - | n/a | physical controls; no generic coordinate/touch injection message exists in the recovered normal protocol |
+| Footswitch presses, touch gestures, encoders | - | n/a | physical controls |
 | Recall a preset | `item.recall()`, `device.recall("28C")` | yes | |
 | Bank navigation / Blinking Mode | `PresetAddress` addressing covers the destination | yes | Blinking Mode itself is a footswitch UI flow, n/a |
 | Tuner menu open/close | `device.tuner.visible` | partly | accepted on the wire; on-screen effect not yet eyeballed |
@@ -1263,7 +1263,6 @@ the n/a rows below where they intersect the API at all.
 | Manual feature | Model surface | Protocol | Notes |
 |---|---|---|---|
 | Grid layout: 4 rows x 8 slots | `preset.rows`, `preset.blocks[r, c]` | yes | 1-based, as on screen |
-| Select a block / open its editor on the unit | **omitted** | no | Cortex Control has a "SHOW ON QC" Parameter Editor control, but its wire shape and physical effect have not been captured. `GridModelMeter{row, column}` probes were silent and state-neutral; do not infer an API |
 | Virtual Device List: browse by category | `device.virtual_devices` | yes | the device's own repository |
 | Virtual Device List: search | client-side over `device.virtual_devices` | n/a | iteration makes it a Python expression |
 | Pin/unpin a device | `virtual_devices.pin()/unpin()`, `.pinned` | yes | append-not-replace quirk absorbed |

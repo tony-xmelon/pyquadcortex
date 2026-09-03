@@ -20,15 +20,6 @@ correction.
 
 ## Unreleased
 
-### Record the boundary around remote UI navigation
-
-The protocol notes now distinguish Cortex Control's local block selection from verified
-on-unit navigation. Cortex Control contains a "SHOW ON QC" Parameter Editor control and a
-row/column `GridModelMeter` sender, but state-neutral hardware probes of that candidate
-were silent and a bus-level differential capture is still required. No API was added.
-The complete recovered production schema also confirms that the normal USB protocol has
-semantic screen commands but no generic touchscreen-coordinate injection message.
-
 ### Refresh the generated CorOS 4.1.0 model catalog
 
 The generated API now covers 420 factory models and 148 fixed option enums,

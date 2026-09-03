@@ -2513,50 +2513,7 @@ Internal category, whose parameters are the controls and whose meters are the te
 **Using** a capture that already exists needs none of that - see the `file_name` parameter
 above.
 
-### 7.7c Grid selection and the on-unit parameter editor
-
-Cortex Control has an explicit **Parameter Editor** button annotated in its embedded UI
-resource as the **SHOW ON QC BUTTON**. The button dispatches an internal
-`toggleEditorVisibility` action, and the same application binary contains a
-`GridModelMeterMessageSender::getMeterMessageBuilder(int, int)`. This is strong evidence
-that Cortex Control intends to show or hide the selected block's editor on the physical
-unit, and that `GridModelMeter` is involved somewhere in its selected-model path. It is
-not yet a captured wire shape.
-
-The recovered production schema contains no `SelectGridModel`, `OpenEditor`, or other
-semantic block-selection message. The nearest candidates are deliberately narrower:
-
-- `GridModelMeter{row, column}` names a cell, but names no visibility or selection state;
-- `GridMove` describes a block move;
-- `DefaultParameters{row, column}` addresses that block's stored defaults;
-- `ShowGigView{show}` and `ShowTuner{show}` navigate only to those named screens.
-
-A state-neutral hardware probe on CorOS 4.1.0 sent `GridModelMeter` with an occupied
-scratch-preset cell under `READ`, `UPDATE`, and `DELETE`, first without and then with a
-request id. None produced a reply, a `Grid` echo, or a dirty-state transition. Before and
-after, the complete serialized live preset was byte-identical and the loaded slot,
-active scene, and clean flag were unchanged. The unit's screen could not be observed by
-that automated run, so silence does **not** establish whether one of those writes caused
-a transient visible editor change. Consequently there is no public navigation method:
-the exact action and its physical-screen effect remain unverified.
-
-A decoded listener cannot finish this differential capture because Cortex Control owns
-the HID interface exclusively. The remaining decisive experiment is a bus-level capture
-of (1) selecting a block in Cortex Control and (2) pressing its Parameter Editor button,
-with an idle control capture as the baseline. USBPcap/Wireshark was not installed on the
-Windows test host, so no Cortex-Control-originated packets were available to compare.
-
-There is also **no generic touchscreen-coordinate injection surface in the recovered
-normal protocol**. All 70 routable `CortexMessageType` values (1 through 70; 0 and 71 are
-sentinels) were inspected, including every nested field. None carries a touch phase,
-gesture, screen point, or generic x/y coordinate. The connected unit enumerates one HID
-control interface, and that interface carries the typed protobuf protocol documented
-here. Semantic UI commands do exist (`ShowGigView`, `ShowTuner`, `GigViewButton`, and the
-capture-dialog handoff), but they are not arbitrary touch events. This is an exhaustive
-negative result for the recovered production message set, not a claim about unknown
-firmware-only or factory-test transports.
-
-### 7.7d The folder tree, and what else is enumerable
+### 7.7c The folder tree, and what else is enumerable
 
 A single `File` READ makes the device enumerate far more than the two setlists. On the
 observed unit **399 folders** arrive over roughly fifteen seconds:
