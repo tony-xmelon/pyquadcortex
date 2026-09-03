@@ -20,6 +20,12 @@ correction.
 
 ## Unreleased
 
+### The offline suite is portable to Windows checkouts
+
+Hardware-gate diagnostics now spell repository-relative paths consistently on
+every platform, and the historical namespace fixture's pinned hash tolerates
+Git's CRLF checkout conversion while still hashing all source content.
+
 ### Read which global modules DSP load inhibited
 
 `inhibited_modules()` reads the two booleans the unit reports when processing
