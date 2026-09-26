@@ -50,8 +50,8 @@ def test_the_committed_snapshot_matches_this_unit(live_catalog, profile, name):
     so a snapshot for another firmware never turns this unit's run red."""
     snapshot = getattr(profile, name)
     if isinstance(snapshot, NoSnapshot):
-        pytest.fail(f"{profile.__name__} has no {name} snapshot yet; run "
-                    f"scripts/generate_{name}.py --snapshot <coros_x_y_z> against this unit")
+        pytest.skip(f"{profile.__name__} has no {name} snapshot yet; generate "
+                    f"that profile's snapshot before comparing catalog constants")
     generated = _generator(name).render(live_catalog,
                                         snapshot=snapshot.__name__.rsplit(".", 2)[-2])
     committed = pathlib.Path(snapshot.__file__).read_text(encoding="utf-8")

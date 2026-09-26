@@ -204,7 +204,11 @@ def test_parameter_echo_latency_is_the_control(qc, probe, restores, record_prope
     this file is worthless - so it is asserted rather than merely recorded.
     """
     preset = qc.read_current_preset()
-    column = next(c for c, m in enumerate(preset.chains[0].models) if m.hash)
+    occupied = [c for c, m in enumerate(preset.chains[0].models) if m.hash]
+    if not occupied:
+        pytest.skip(f"{type(qc).__name__}'s loaded preset has no block for a "
+                    "parameter echo measurement")
+    column = occupied[0]
     was = next(p.param_values[0].float_value
                for p in preset.chains[0].models[column].params if p.index == 0)
     restores("row 1 first block, parameter 0", lambda: qc.set_param(Block(0, column), 0, Encoded(was)))
@@ -239,7 +243,11 @@ def test_parameter_echo_latency_is_the_control(qc, probe, restores, record_prope
 @pytest.mark.verifies("set_bypass")
 def test_bypass_echo_latency(qc, probe, restores, record_property):
     preset = qc.read_current_preset()
-    row, column = 0, next(c for c, m in enumerate(preset.chains[0].models) if m.hash)
+    occupied = [c for c, m in enumerate(preset.chains[0].models) if m.hash]
+    if not occupied:
+        pytest.skip(f"{type(qc).__name__}'s loaded preset has no block for a "
+                    "bypass echo measurement")
+    row, column = 0, occupied[0]
     was = qc.read_current_preset().bypass[row].colBypass
     entry = next((cb for cb in was if cb.column == column), None)
 

@@ -426,6 +426,13 @@ inbound `Version` messages, the full reply (15 fields, at +0.71 s), the unit's
 own `Version{READ}` about 1 ms behind it, and the answer to the announce
 (carrying `cortex_control_version_valid`, at +0.73 s).
 
+A separate contributed capture on CorOS 4.1.0 / app firmware d14e (2026-09-27)
+recorded only the full `Version{UPDATE}` reply and the unit's own
+`Version{READ}` during `connect()` and its burst. No announce answer carrying
+`cortex_control_version_valid` was observed. The 4.0.1 three-message shape above
+is therefore not assumed for 4.1.0; the hardware test checks the profile-specific
+shape rather than treating the missing announce answer as a regression.
+
 ### 4.3 Keepalive and disconnect
 
 Cortex Control sends `KeepAlive{action: UPDATE}` about once per second. The
@@ -1794,12 +1801,17 @@ every entry for that id.
 
 **Gig View** is `ShowGigView{UPDATE, show}`; `show` has no presence.
 
-### 11.8 CorOS 4.1 physical-screen remote control
+### 11.8 CorOS 4.1 physical-screen control
 
 `RemoteControl{READ, screenshot:{}}` produces an uncorrelated `UPDATE` carrying
-a complete 800 x 480 `PNG`; it has no `request_id`, so `capture_screen()` waits
-for the broadcast and rejects region frames. This is distinct from preset
-thumbnail `Screenshot = 25`.
+a complete 800 x 480 `PNG` of the physical screen; it has no `request_id`, so
+`capture_screen()` waits for the broadcast and rejects region frames. This is
+distinct from preset-image `Screenshot = 25`. The latter takes an address
+(`folder_name`, `is_factory`, `index`) and returns the stored preset rendering;
+a bare `Screenshot{READ}` without that address did not answer in a contributor's
+probe on 2026-09-26. An empty slot has no stored preset rendering; use
+`capture_screen()` when the physical screen itself is wanted. That operation
+does not recall or navigate to another slot.
 
 The observed tap on CorOS 4.1.0 sent `type: 1`, then 20 ms later omitted the
 proto3-default `type: 0`. The recovered labels interpret this as `RELEASE=1`
@@ -1812,6 +1824,13 @@ which has no defensible trial count. An unprimed pair did not land; one
 screenshot read and a conservative 300 ms wait did. That observation does not
 establish a minimum settle time. Neither mouse message is acknowledged, so
 `tap_screen()` returns after the timed sequence is transmitted.
+
+On 2026-09-27, tony-xmelon repeated the direct-HID check from an empty Grid:
+`(100, 147)` opened the Plugins chooser; tapping the same point again restored
+the original screen byte-for-byte. The loaded preset remained clean and no
+block was added. The retained 2026-09-04 probe does not preserve a reliable count
+or starting-screen record for its `TAP`/`MOVE` attempts, so those attempts are
+not used to claim a success rate.
 
 The capture and tap shapes have contributed CorOS 4.1.0 evidence and are
 refused by the unmeasured 4.0.1 profile. Swipe and graphics-tree operations are
@@ -2203,8 +2222,8 @@ wire, with no independent read-back.
 | `set_block` | `Grid{UPDATE, preset{chains{row, models{column, hash}}}}` | read-back + on-unit | a placement can be refused silently, for DSP capacity or a port conflict; verified against the echo and a read-back |
 | `remove_block` | `Grid{action: DELETE, preset{chains{row, models{column, hash: 0}}}}` | read-back + on-unit | the action marks the removal |
 | `catalog` | `ModelRepo{READ}` then `ModelRepo{model_repo_payload}` | read-back | gzip(tar(ModelRepo.xml)) |
-| `capture_screen` | `RemoteControl{READ, screenshot:{}}` then uncorrelated `UPDATE` with full PNG | shared broker capture | CorOS 4.1.0, 800 x 480; Python hardware suite still requires direct HID execution |
-| `tap_screen(x, y)` | screenshot prime, then atomic `RemoteControl{UPDATE, mouse}` pair | shared broker tap + screen readback | CorOS 4.1.0; tap at `(100, 147)` opened the Plugins chooser and a second tap restored the Grid; preset remained clean |
+| `capture_screen` | `RemoteControl{READ, screenshot:{}}` then uncorrelated `UPDATE` with full PNG | contributed direct-HID hardware test | measured 2026-09-27 by tony-xmelon on Quad Cortex, CorOS 4.1.0; full physical-screen PNG is 800 x 480 |
+| `tap_screen(x, y)` | screenshot prime, then atomic `RemoteControl{UPDATE, mouse}` pair | contributed direct-HID observation | measured 2026-09-04 and repeated 2026-09-27 by tony-xmelon on CorOS 4.1.0; `(100, 147)` opened Plugins chooser and the second tap restored an identical Grid screen |
 
 ## Open questions
 

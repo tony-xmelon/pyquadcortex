@@ -24,13 +24,14 @@ class QuadCortex41(QuadCortex):
     d14e, by tony-xmelon. That is a contributor's report and the maintainer has
     not reproduced it, which is what ``Evidence.CONTRIBUTED`` says here. The
     connection is therefore known to work with this handshake and announce
-    string. ``capture_screen`` has a dated 4.1.0 hardware-test result;
-    ``tap_screen`` was manually verified by tony-xmelon on 2026-09-04 at
-    (184, 147), where it opened the intended Grid block and a following capture
-    showed its editor. These two operations, ``create_local_backup``, and the separately
-    contributed ``set_device_name`` round trip are VERIFIED; other
-    inherited operations refuse
-    under ``Support.VERIFIED`` and run with a warning under
+    string. ``capture_screen`` passed a direct-HID hardware test on 2026-09-27.
+    ``tap_screen`` was manually verified by tony-xmelon on 2026-09-27 at
+    (100, 147): it opened the Plugins chooser on an empty Grid, and a second tap
+    restored a byte-identical Grid capture without adding a block. The earlier
+    2026-09-04 observation at (184, 147) opened a block editor. These two
+    operations, ``create_local_backup``, and the separately contributed
+    ``set_device_name`` round trip are VERIFIED; other inherited operations
+    refuse under ``Support.VERIFIED`` and run with a warning under
     ``Support.EXPERIMENTAL``. The snapshot is deliberately absent: binding the
     4.0.1 constants would hand a 4.1 user names their unit does not use.
 
@@ -50,12 +51,14 @@ class QuadCortex41(QuadCortex):
     VERIFIED = frozenset({
         "capture_screen", "create_local_backup", "set_device_name", "tap_screen",
     })
+    HARDWARE = Hardware(footswitches=8, expression_ports=2,
+                        display_size=(800, 480))
     models = NoSnapshot("coros_4_1_0")
     params = NoSnapshot("coros_4_1_0")
     options = NoSnapshot("coros_4_1_0")
 
     def capture_screen(self, timeout: float = 10.0) -> bytes:
-        """Return the CorOS 4.1 physical-display PNG."""
+        """Return the CorOS 4.1 physical-screen PNG."""
         return self._capture_screen(timeout=timeout)
 
     def tap_screen(self, x: float, y: float, timeout: float = 10.0) -> None:

@@ -32,6 +32,7 @@ import pytest
 import pyquadcortex.protocol as pq
 from pyquadcortex.protocol import catalog as catalog_module
 from pyquadcortex.protocol import values
+from pyquadcortex.protocol.support import NoSnapshot
 
 #: How long to let a batch of writes settle before reading the preset back.
 SETTLE = 0.8
@@ -110,7 +111,9 @@ def test_every_option_position_lands_where_the_catalog_says(qc, restored, live_c
     """
     preset = qc.read_current_preset()
     targets = _targets(preset, live_catalog)
-    assert targets, "the loaded preset has no fixed-list parameters to drive"
+    if not targets:
+        pytest.skip(f"{type(qc).__name__}'s loaded preset has no fixed-list "
+                    "parameters to exercise")
 
     # set_param without `scene=` writes the ACTIVE scene, so the read has to
     # look at the same slot rather than assuming scene A.
@@ -180,7 +183,7 @@ def test_every_option_position_lands_where_the_catalog_says(qc, restored, live_c
           f"parameters, all landed where the catalog says")
 
 
-def test_the_displayPos_counts_the_docs_quote_still_hold(live_catalog):
+def test_the_displayPos_counts_the_docs_quote_still_hold(live_catalog, profile):
     """`display_pos` is published on two screen readings, so pin what is countable.
 
     The readings themselves cannot be re-taken without eyes. What CAN be checked
@@ -195,6 +198,10 @@ def test_the_displayPos_counts_the_docs_quote_still_hold(live_catalog):
     numbers in `CLAUDE.md`, `docs/STEERING.md`, `docs/domain-model.md` and
     `changelog.md` need re-deriving before anything else is trusted.
     """
+    if isinstance(profile.models, NoSnapshot):
+        pytest.skip(f"{profile.__name__} has no catalog snapshot for the "
+                    "4.0.1 displayPos baseline")
+
     placeable = [m for m in live_catalog
                  if not (m.hidden or m.internal or m.category_hidden)]
 

@@ -24,6 +24,7 @@ import xml.etree.ElementTree as ET
 import pytest
 
 from pyquadcortex.protocol import catalog, options
+from pyquadcortex.protocol.support import NoSnapshot
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 READINGS = REPO / "tests" / "fixtures" / "catalog" / "option_readings.json"
@@ -150,7 +151,7 @@ def test_a_list_stamped_absent_still_looks_the_way_it_did_when_looked_at(live_ca
             f"changed - look at the control again before trusting the record.")
 
 
-def test_the_hidden_attribute_is_still_shaped_the_way_it_was_counted(live_xml):
+def test_the_hidden_attribute_is_still_shaped_the_way_it_was_counted(live_xml, profile):
     """`Parameter.hidden` documents two numbers that nothing has been checking.
 
     649 parameters say `"true"` and exactly one says `"atma"` - the Freeze
@@ -164,6 +165,10 @@ def test_the_hidden_attribute_is_still_shaped_the_way_it_was_counted(live_xml):
     parameters, `Parameter.hidden` answering only for a Quad Cortex matters more
     than it does today.
     """
+    if isinstance(profile.models, NoSnapshot):
+        pytest.skip(f"{profile.__name__} has no catalog snapshot for the "
+                    "4.0.1 hidden-attribute baseline")
+
     values = collections.Counter(
         p.get("hidden") for p in live_xml.iter("Parameter")
         if p.get("hidden") is not None)
