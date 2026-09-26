@@ -22,8 +22,10 @@ the 800 x 384 `PNG` the device renders for that preset, without recalling it or
 changing the unit's screen. The folder argument is its display name
 (`"My Presets"`), not its key; `list_folders()` supplies the name and the
 factory flag. The address is not optional on the wire: a bare `Screenshot{READ}`
-is ignored. The CorOS 4.0.1 profile refuses the operation because that wire
-shape has only been measured on 4.1.0.
+is ignored. For the currently loaded empty/unsaved slot, the method returns the
+live 800 x 480 screen capture instead of waiting for the device's absent stored
+image response. The CorOS 4.0.1 profile refuses the operation by default;
+`Support.EXPERIMENTAL` enables a hardware probe there.
 
 ### CorOS 4.1 physical-screen capture and tap are exposed
 
