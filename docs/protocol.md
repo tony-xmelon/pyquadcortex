@@ -1384,18 +1384,44 @@ sessions hold one `MOVE` (session 02, frame 25825) and one `DELETE` (session
 
 ### 10.3 Setlists
 
-**Creating a setlist** is captured from the unit's own "New Setlist" and
-confirmed host to unit. Setlists sit side by side under `/media/p4/Presets`:
+Setlists sit side by side under `/media/p4/Presets`. The create shape is
+profile-specific:
 
 ```
-File{CREATE, type: 0, folder{key: "/media/p4/Presets/<name>", name: "<name>",
-                             is_factory: false}}
+CorOS 4.0.1:
+File{CREATE, type: 0, folder{key: "/media/p4/Presets/<name>", name: "<name>"}}
+
+CorOS 4.1.0:
+File{CREATE, type: 0, folder{key: "/media/p4/Presets/<name>",
+                             parent_key: "/media/p4/Presets",
+                             name: "<name>", is_factory: false}}
 ```
 
-The new key appears in the folder listing and works anywhere a setlist path
-does. So the MIDI documentation's "User folders" at bank-select LSB 2 to 12 are
-folders a player creates. **Deleting a setlist** is `File{DELETE, folder{key,
-name}}` against the setlist's own key.
+The 4.0.1 create was captured from the unit's own "New Setlist" action and
+confirmed host to unit. The 4.1.0 create shape was sent by the library on a
+CorOS 4.1.0 unit on 2026-09-27; a fresh folder listing confirmed the disposable
+setlist appeared. On both profiles the new key works anywhere a setlist path
+does. So the MIDI documentation's "User folders" at bank-select LSB 2 to 12
+are folders a player creates.
+
+Delete is also profile-specific. CorOS 4.0.1 uses the shape captured on that
+firmware:
+
+```
+File{DELETE, folder{key, name}}
+```
+
+CorOS 4.1.0's Cortex Control shape omits `name` and sends explicit false flags:
+
+```
+File{DELETE, type: 0, folder{key, is_factory: false},
+     delete_from_library: false}
+```
+
+Both delete shapes were sent on CorOS 4.1.0 on 2026-09-27 against separate
+empty disposable setlists; a fresh listing confirmed each folder was removed.
+The 4.0.1 shape remains the base profile's behavior, while `QuadCortex41`
+uses the 4.1.0 shape.
 
 **There is no host-drivable copy.** The unit's duplicate action sends a `File`
 `CREATE` for the destination and then narrates itself through `BulkOperation`
@@ -2147,9 +2173,9 @@ wire, with no independent read-back.
 | `master_volume` / `set_master_volume` | `MasterVolume{READ}` / `{UPDATE, volume}` | read-back + on-unit + by ear | takes `Encoded`; the screen shows `round(v * 100)`. Never add `calibrate` |
 | `pin_model` / `unpin_model` / `pinned_models` | `PinnedModels{models}` with no action / `{DELETE, models}` | read-back + on-unit | pinning appends and can duplicate; `DELETE` removes every entry for an id |
 | `delete_setlist` | `File{DELETE, folder{key, name}}` | read-back | removes the setlist and its contents |
-| `delete_setlist` on CorOS 4.1.0 | `File{DELETE, folder{key, is_factory: false}, delete_from_library: false}` | read-back | measured 2026-09-11 on a disposable setlist; the 4.0.1 shape above remains profile-local |
+| `delete_setlist` on CorOS 4.1.0 | `File{DELETE, folder{key, is_factory: false}, delete_from_library: false}` | read-back | measured 2026-09-27 on an empty disposable setlist; the legacy shape also removed a separate disposable setlist on 4.1.0; the 4.0.1 base shape remains profile-local |
 | `create_setlist` | `File{CREATE, folder{key: "/media/p4/Presets/<name>", name}}` | read-back + on-unit | setlists are siblings under the presets root |
-| `create_setlist` on CorOS 4.1.0 | `File{CREATE, folder{key, parent_key: "/media/p4/Presets", name, is_factory: false}}` | read-back | measured 2026-09-11 on a disposable setlist; the 4.0.1 shape above remains profile-local |
+| `create_setlist` on CorOS 4.1.0 | `File{CREATE, folder{key, parent_key: "/media/p4/Presets", name, is_factory: false}}` | read-back | measured 2026-09-27 on an empty disposable setlist; the 4.0.1 shape above remains profile-local |
 | `copy_preset` / `duplicate_setlist` | recall then `File{CREATE}` per preset | read-back | compositions; each recalls the source on the unit |
 | `set_split_mute` | `Grid{UPDATE, preset{chains{row, splitBypass{bypass}}}}` | read-back | reported back in `mixBypass`; one write sets all eight scenes |
 | `set_stomp_assignment` / `clear_stomp_assignment` | `Grid{DELETE, stomp_mode_assignments{row, column}}` then `Grid{UPDATE, ...{stomp_index}}` | read-back + on-unit | the unit's own two-message sequence |

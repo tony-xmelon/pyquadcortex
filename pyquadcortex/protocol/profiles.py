@@ -53,7 +53,7 @@ class QuadCortex41(QuadCortex):
     def create_setlist(self, name: str):
         """Create a user setlist using the CorOS 4.1 Cortex Control shape.
 
-        Measured on CorOS 4.1.0 on 2026-09-11 against a disposable setlist:
+        Measured on CorOS 4.1.0 on 2026-09-27 against a disposable setlist:
         ``parent_key`` is present and listing read-back confirms creation.
         """
         msg = pa.FileMessage(type=0)
@@ -67,9 +67,10 @@ class QuadCortex41(QuadCortex):
     def delete_setlist(self, name: str):
         """Delete a user setlist using the measured CorOS 4.1 shape.
 
-        Measured on CorOS 4.1.0 on 2026-09-11 against a disposable setlist:
-        omitting ``name`` and sending the explicit false flags removed it, as
-        confirmed by listing read-back.
+        Measured on CorOS 4.1.0 on 2026-09-27 against an empty disposable
+        setlist: omitting ``name`` and sending the explicit false flags removed
+        it, as confirmed by listing read-back. The legacy 4.0.1 shape also
+        removed a separate disposable setlist on this firmware.
         """
         msg = pa.FileMessage(action=pa.MessageAction.DELETE, type=0)
         msg.folder.key = f"{USER_SETLIST_ROOT}/{name}"

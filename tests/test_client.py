@@ -3156,7 +3156,7 @@ def test_create_setlist_uses_a_sibling_path_under_the_presets_root():
     assert "My Presets" not in folder.key, "a setlist is not nested inside My Presets"
 
 
-def test_coros_4_1_create_setlist_serialization_pin():
+def test_coros_4_1_create_setlist_builder_serialization_pin():
     from pyquadcortex.protocol.profiles import QuadCortex41
     qc = QuadCortex41(FakeTransport())
     qc.create_setlist("Tour")
@@ -3222,7 +3222,7 @@ def test_delete_setlist_addresses_the_folder_key():
     assert not msg.HasField("to_folder")
 
 
-def test_coros_4_1_delete_setlist_serialization_pin():
+def test_coros_4_1_delete_setlist_builder_serialization_pin():
     from pyquadcortex.protocol.profiles import QuadCortex41
     qc = QuadCortex41(FakeTransport())
     qc.delete_setlist("Tour")
