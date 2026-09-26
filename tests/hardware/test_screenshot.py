@@ -17,7 +17,19 @@ def test_current_preset_screenshot_has_the_observed_png_dimensions(qc, profile):
     assert folder is not None, f"listing omitted loaded folder {before.folder_key!r}"
     assert folder.name, f"loaded folder {before.folder_key!r} has no display name"
 
-    png = qc.preset_screenshot(folder.name, before.position, before.is_factory)
+    # An empty user slot has no stored preset to render and the unit does not
+    # answer Screenshot{READ} for it. Prefer the loaded slot when occupied; if
+    # the owner has an empty slot loaded, use an existing saved slot in the same
+    # setlist without recalling it or changing the grid.
+    entries = qc.list_presets(folder.key, timeout=25.0)
+    address = next((item.index for item in entries
+                    if item.index == before.position), None)
+    if address is None:
+        address = next((item.index for item in entries if item.name), None)
+    if address is None:
+        pytest.skip("the loaded setlist has no saved preset to screenshot")
+
+    png = qc.preset_screenshot(folder.name, address, before.is_factory)
 
     assert png[:8] == b"\x89PNG\r\n\x1a\n"
     assert struct.unpack(">II", png[16:24]) == (800, 384)
