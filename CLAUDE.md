@@ -168,6 +168,10 @@ small documentation fixes.
   `collect` refuse on that thread. To see the connect burst, register through
   `protocol.connect(before_handshake=...)`. (ADR-0009)
 - New operations follow `docs/architecture.md`, "How to add a new operation".
+- A timing-sensitive multi-message operation uses `Transport.send_sequence`,
+  which frames first and holds the write lock across the sequence. Do not sleep
+  between writes in `protocol/client.py` or issue those messages as separate
+  `send` calls.
 
 ## Do not
 

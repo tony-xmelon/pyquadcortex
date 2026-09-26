@@ -396,3 +396,13 @@ Records are append-only once `Decided` and built upon: a shipped decision is nev
   - The settings start to matter the day any contributor is granted write access. Granting that access is a separate, deliberate act and is not part of this record.
   - This is repository governance rather than library architecture, and it lives here rather than in `contributing.md` or `docs/STEERING.md` because the durable part is the reasoning - in particular why `require_last_push_approval` was rejected, which is the decision a future maintainer would otherwise re-litigate from scratch. `contributing.md` gains its note about sync-before-review only once contributors can actually merge.
   - Reversal is one API call and costs nothing, which is why this record is short on hedging: the setting is cheap to try and cheap to undo.
+
+## ADR-0024: A timed device gesture is one atomic transport sequence
+
+- **Status:** Decided (2026-09-04)
+- **Decision:** A protocol operation made of timing-sensitive messages uses `Transport.send_sequence`. The transport frames every message first and holds the write lock across writes and inter-message intervals; the client selects messages and measured timing but does not sleep or write reports itself.
+- **Context:** CorOS 4.1 touchscreen input needs two `RemoteControl` messages 20 ms apart after the initial screenshot read settles. Separate `send` calls allow keepalive traffic to split the gesture and put timing in the wrong layer.
+- **Options:** (a) Atomic transport sequence — chosen. (b) Sleep and call `send` from the client — rejected because another write can interleave. (c) Write HID reports directly — rejected because framing belongs to the transport.
+- **Open Questions:** None.
+- **Rationale:** The transport owns serialization and timing; the protocol client owns semantic message construction.
+- **Consequences:** Timing-sensitive multi-message operations use `send_sequence`; tests assert message order and interval/delay arguments. A delayed sequence remains non-transactional at the device and does not imply an acknowledgement.

@@ -27,10 +27,7 @@ class QuadCortex41(QuadCortex):
     string. ``capture_screen`` has a dated 4.1.0 hardware-test result;
     ``tap_screen`` was manually verified by tony-xmelon on 2026-09-04 at
     (184, 147), where it opened the intended Grid block and a following capture
-    showed its editor. ``swipe_screen`` and ``graphics_tree`` were subsequently
-    exercised during physical 4.1.0 screen sweeps on 2026-09-08; this branch
-    pins their protobuf wire shapes and host bounds.
-    These four operations, ``create_local_backup``, and the separately
+    showed its editor. These two operations, ``create_local_backup``, and the separately
     contributed ``set_device_name`` round trip are VERIFIED; other
     inherited operations refuse
     under ``Support.VERIFIED`` and run with a warning under
@@ -51,8 +48,7 @@ class QuadCortex41(QuadCortex):
     MEASURED_ON = ("4.1.0",)
     EVIDENCE = Evidence.CONTRIBUTED
     VERIFIED = frozenset({
-        "capture_screen", "create_local_backup", "graphics_tree",
-        "set_device_name", "swipe_screen", "tap_screen",
+        "capture_screen", "create_local_backup", "set_device_name", "tap_screen",
     })
     models = NoSnapshot("coros_4_1_0")
     params = NoSnapshot("coros_4_1_0")
@@ -65,17 +61,6 @@ class QuadCortex41(QuadCortex):
     def tap_screen(self, x: float, y: float, timeout: float = 10.0) -> None:
         """Tap a CorOS 4.1 physical-screen pixel coordinate."""
         self._tap_screen(x, y, timeout=timeout)
-
-    def swipe_screen(
-            self, x: int, y: int, to_x: int, to_y: int,
-            timeout: float = 10.0) -> None:
-        """Swipe between two CorOS 4.1 physical-screen pixel coordinates."""
-        self._swipe_screen(x, y, to_x, to_y, timeout=timeout)
-
-    def graphics_tree(self, timeout: float = 5.0) -> str:
-        """Return the CorOS 4.1 on-device zenUI widget tree."""
-        return self._graphics_tree(timeout=timeout)
-
 
 class QuadCortexMini(QuadCortex):
     """Quad Cortex Mini - recognised, not supported, and here to be finished.

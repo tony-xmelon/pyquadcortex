@@ -14,7 +14,7 @@ For the wire itself (frame layout, handshake, message shapes) see
 
 - [Layer map](#layer-map)
 - [What flows through the layers](#what-flows-through-the-layers)
-- [send vs request vs await_broadcast](#send-vs-request-vs-await_broadcast)
+- [send vs send_sequence vs request vs await_broadcast](#send-vs-send_sequence-vs-request-vs-await_broadcast)
 - [How to add a new operation](#how-to-add-a-new-operation)
 - [The generated protobuf bindings](#the-generated-protobuf-bindings)
 - [Testing philosophy](#testing-philosophy)
@@ -160,10 +160,10 @@ classes: `type_for(cls)` and `class_for(message_type)`. A type absent from
 ### client.py
 
 `QuadCortex` is the message-level API. It builds protobuf messages and calls
-`send`, `request`, `await_broadcast` and `next_request_id` on the transport it
+`send`, `send_sequence`, `request`, `await_broadcast` and `next_request_id` on the transport it
 was given. It never touches a report, a frame or a byte offset.
 
-Because it depends on four transport methods, the whole API is testable with a
+Because it depends on five transport methods, the whole API is testable with a
 short fake (`tests/test_client.py`) and no unit, no `hid`, no timing. Every wire
 concern stays below this line. When you add an operation, the protobuf building
 belongs here and nothing else does.
@@ -282,7 +282,7 @@ device.read() -> one 129-byte input report
      else a broadcast waiter, else dropped
 ```
 
-## send vs request vs await_broadcast
+## send vs send_sequence vs request vs await_broadcast
 
 Choosing correctly is most of the work of adding an operation. The first three
 rows serve one exchange. The last is how a long-lived caller watches the link.
@@ -290,6 +290,7 @@ rows serve one exchange. The last is how a long-lived caller watches the link.
 | Transport method | Use when | Blocking | Correlation |
 |---|---|---|---|
 | `send(msg)` | The unit acts on the message and you do not need its answer: scene switch, grid edits, recall, keepalive. | No | None |
+| `send_sequence(messages, interval=, delay=)` | Messages form one short timing-sensitive gesture that concurrent writes must not split. The transport frames first and holds the write lock across the sequence. | During the requested delay and intervals | None |
 | `request(msg, timeout=)` | The unit answers with a message of the **same type**: `Version` read, `ResetCommsBuffers`, the `File` mutations. | Yes | A fresh `request_id` is registered before the write. The reply is the first inbound message of the same type whose `request_id`, if present on both sides, matches. |
 | `await_broadcast(cls, trigger, timeout=, match=)` | The answer arrives as a **push of a different type**, or as an unsolicited push the unit emits in response to an action: the `RecallPreset` push that carries a preset, the `File` folder listings. | Yes | By message class, plus your `match` predicate. A message the predicate rejects is left for a later waiter. |
 | `add_listener(fn)` | You want every message for the life of the connection: a cache fed by the unit's pushes, or a log of the link. | No, but `fn` runs on the RX thread | None. Every message, every type. Removed with the returned callable or `remove_listener(fn)`. |
@@ -312,7 +313,7 @@ Worked example: `set_global_tempo(bpm)`.
 `protocol/proto/ProductionAutomation.proto` (control messages) and
 `protocol/proto/Preset.proto` (the `BinaryPreset` grid model). Start from the
 `CortexMessageType.Enum` block at the top of `ProductionAutomation.proto`, which
-lists all 71 types with their wire integers. Find `GlobalTempo = 33`, then
+lists all 73 types with their wire integers. Find `GlobalTempo = 33`, then
 `message GlobalTempoMessage`. Nearly every scalar field sits in a synthetic
 `oneof`, so `HasField()` tells "set to zero" from "not set".
 
