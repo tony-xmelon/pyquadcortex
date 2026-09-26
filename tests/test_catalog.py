@@ -188,6 +188,19 @@ def test_missing_clone_target_falls_back_to_local_parameters():
     assert [(p.index, p.name) for p in model.parameters] == [(0, "LOCAL")]
 
 
+def test_missing_clone_target_logs_model_and_parent(caplog):
+    xml = """<Models><Category id="1" name="Test">
+      <Model id="1" name="Partial" clones="999">
+        <Parameter name="LOCAL" min="0" max="1" defaultValue="0"/>
+      </Model>
+    </Category></Models>"""
+
+    catalog.parse_model_repo(make_payload(xml))
+
+    assert "ModelRepo model 1 ('Partial')" in caplog.text
+    assert "missing clone parent 999" in caplog.text
+
+
 def test_clone_cycle_falls_back_locally_without_discarding_the_catalog():
     xml = """<Models><Category id="1" name="Test">
       <Model id="1" name="One" clones="2"/>
@@ -1210,14 +1223,17 @@ def test_a_model_marked_internal_false_is_not_internal():
 
 #: Attributes the parser may legitimately read by PRESENCE, each with the reason.
 #:
-#: Empty, and that is the point - there is nowhere in this parser today where
-#: "the attribute exists" is the question. The list exists because the failure
-#: message offers this escape and a test that offers one without implementing it
-#: sends a contributor in a circle. Same shape as `BOUNDARY_MODULES` in
+#: `replaces` is read by presence: on a cloned parameter, a numeric value gives
+#: the inherited wire index to replace, while an absent attribute means append
+#: it after the inherited layout. The value `"0"` is meaningful, so truthiness
+#: is not a substitute. Same shape as `BOUNDARY_MODULES` in
 #: `tests/test_translation.py` and `UNMARKED_OPERATIONS` in
 #: `tests/test_hardware_markers.py`: a name gets on it with a written reason, and
 #: a reviewer judges the reason.
-PRESENCE_IS_RIGHT: dict[str, str] = {}
+PRESENCE_IS_RIGHT: dict[str, str] = {
+    "replaces": "a present numeric value replaces that inherited wire index; "
+                "absence means append the child parameter",
+}
 
 
 def _presence_reads(source: str) -> list[str]:

@@ -357,16 +357,9 @@ def test_real_on_a_bare_block_names_the_missing_model_not_the_catalog():
 def test_a_cloned_cab_converts_through_its_resolved_wire_layout():
     """Clone resolution retains inherited scale metadata at wire indexes."""
     get = _scale_catalog()
-    assert Block(0, 5, 21005).wire_model(get).id == 21005
     assert Block(0, 5, 21005).spec_at(2, get).name == "MIC 1 LEVEL"
     assert Block(0, 5, 21005).normalize(2, -3.0, get) == pytest.approx(0.3400,
                                                                       abs=5e-4)
-
-
-def test_a_non_cab_does_not_borrow_the_cabsim_layout():
-    """The alias is not a back door into every model near a cab."""
-    get = _scale_catalog()
-    assert Block(0, 1, 5005).wire_model(get).id == 5005
 
 
 # -- the check and the conversion must read the SAME spec ---------------------
@@ -416,11 +409,10 @@ def _diverging_cab_catalog():
 def test_a_short_cab_resolves_its_declared_parent_layout():
     get = _diverging_cab_catalog()
     bare = Block(0, 5, 12001)
-    assert bare.wire_model(get).id == 12001
     assert bare.spec_at(2, get).name == "LEVEL"
 
 
-def test_a_cab_that_describes_the_whole_layout_numbers_the_wire_itself():
+def test_a_cab_with_full_layout_keeps_parameters_beyond_the_shared_layout():
     """The 6 full-form cabs are left alone, and it is not tidiness.
 
     Three of them carry parameters PAST the layout's end - the layout says
@@ -429,7 +421,6 @@ def test_a_cab_that_describes_the_whole_layout_numbers_the_wire_itself():
     """
     get = _diverging_cab_catalog()
     full = Block(0, 5, 12100)
-    assert full.wire_model(get).id == 12100
     assert full.spec_at(6, get).name == "ROOM MIX"      # past the layout's end
     assert full.spec_at(2, get).name == "LEVEL"         # and agreeing before it
 

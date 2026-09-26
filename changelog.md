@@ -20,7 +20,8 @@ sustained stretch without a correction.
 Models that declare `clones` now expose the inherited wire layout with numeric
 parameter replacements applied before child-only extensions. This fixes both
 ordinary and PCOM cab addressing and the cloned reverb families. A malformed
-model falls back locally without discarding the rest of the device catalog.
+model logs the model and reason, then falls back locally without discarding the
+rest of the device catalog.
 ### Rename the unit, drive undo/redo, and read inhibited modules
 
 `set_device_name()` sends a sparse Version update. `undo()` and `redo()` drive

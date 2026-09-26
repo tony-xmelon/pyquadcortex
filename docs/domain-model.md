@@ -1385,7 +1385,7 @@ and are 316 parameters between them, can be recorded too. The readings are in
 `scripts/generate_options.py` stamps each enum's docstring from them.
 
 **Where it stands (2026-09-16, CorOS 4.0.1): 13 audited, 1 drawn, 5 not drawn,
-94 unread**, of 113 fixed lists. The nineteen read lists cover 357 of the 611
+94 unread**, of 113 fixed lists. The fourteen read lists cover 357 of the 611
 parameters that carry a fixed list. The 94 unread cover 218.
 
 What is left is not 94 equal jobs. Ranked by how many parameters each list

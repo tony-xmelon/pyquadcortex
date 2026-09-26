@@ -896,13 +896,15 @@ def _effective_parameter_elements(
     ModelRepo models may ``clone`` another model and publish only the
     parameters they replace. Each child's numeric ``replaces`` attribute is the
     inherited wire index; child parameters without one extend the resolved
-    list. On a contributed CorOS 4.1.0 catalog (2026-09-08), cabs clone four
-    different 21- or 31-parameter layouts and a reverb family clones model
-    8015. The maintainer confirmed the same shapes on CorOS 4.0.1.
+    list. On the contributed CorOS 4.1.0 catalog (2026-09-08, Antoni Ivanov),
+    cabs clone four different 21- or 31-parameter layouts and a reverb family
+    clones model 8015. Jonathan Stokes confirmed the same 4.0.1 layout sizes
+    on 2026-09-09.
 
-    A missing clone target is treated like an ordinary model. A malformed
-    clone (including a cycle) raises here so :func:`parse_model_repo` can fall
-    that model back to its local parameters without discarding the catalog.
+    A missing clone target is diagnosed and treated like an ordinary model. A
+    malformed clone (including a cycle) raises here so :func:`parse_model_repo`
+    can fall that model back to its local parameters without discarding the
+    catalog.
     """
     model_id = _as_int(model.get("id"))
     assert model_id is not None
@@ -912,6 +914,12 @@ def _effective_parameter_elements(
 
     clone_id = _as_int(model.get("clones"))
     base = models.get(clone_id) if clone_id is not None else None
+    if clone_id is not None and base is None:
+        model_name = model.get("name", "")
+        raise ValueError(
+            f"ModelRepo model {model_id} ({model_name!r}) declares missing "
+            f"clone parent {clone_id}"
+        )
     if base is None:
         effective = list(enumerate(model.findall("Parameter")))
     else:
@@ -987,7 +995,7 @@ def parse_model_repo(payload: bytes) -> ModelCatalog:
                 # models this build has never seen. One malformed clone must
                 # not discard every other model; preserve its local parameters
                 # in published order, as the parser did before clone support.
-                logger.debug(
+                logger.warning(
                     "ModelRepo model %s clone resolution failed; using its local "
                     "parameter order: %s",
                     model_id,
