@@ -424,11 +424,11 @@ inbound `Version` messages, the full reply (15 fields, at +0.71 s), the unit's
 own `Version{READ}` about 1 ms behind it, and the answer to the announce
 (carrying `cortex_control_version_valid`, at +0.73 s).
 CorOS 4.1.0 produced the same three shapes in a contributed 2026-09-11 capture:
-identity `UPDATE`, the unit's action-only `READ`, then the compatibility
-`UPDATE`. Four narrower 4.1.0 connection observations on 2026-09-04 did not see
-that final answer before their observation windows ended. The later complete
-capture is why the missing answer is recorded here without treating it as a
-profile difference.
+identity `UPDATE` at +0.8476 s, the unit's action-only `READ` at +0.8484 s, then
+the compatibility `UPDATE` at +0.8982 s. Four narrower 4.1.0 connection
+observations on 2026-09-04 did not see that final answer before their observation
+windows ended; the captures differ in observation window, not an established
+profile behaviour.
 
 ### 4.3 Keepalive and disconnect
 
@@ -2114,18 +2114,19 @@ wire, with no independent read-back.
 |---|---|---|---|
 | connect handshake | `ResetCommsBuffers` + `Version` UPDATE + `ModelRepo` READ + `Connection` + subscribe READs | read-back | the connect gate; state pushes flow only after it |
 | version read | `Version{action: READ}` | read-back | two messages come back; `version()` accepts only one carrying `device_serial_number` or `app_fw_version` (section 4.4) |
-| `set_device_name` | `Version{UPDATE, custom_name}` | read-back + on-unit | sparse echo, read-back, and restoration confirmed on CorOS 4.0.1 and 4.1.0 |
+| `set_device_name` | `Version{UPDATE, custom_name}` | read-back + on-unit | sparse echo, read-back, and restoration confirmed on CorOS 4.0.1 and 4.1.0; contributed 4.1.0 round trip 2026-09-11 |
 | `inhibited_modules` | `CompilerInhibitedModules{READ}` | read-back | explicit false/false reply on CorOS 4.0.1 and 4.1.0; true semantics are schema-derived, not yet observed |
-| `create_local_backup` | `LocalBackup{CREATE}` then `LocalBackup{UPDATE, backup_json}` pushes, the last with `is_last_chunk` | captured only | section 10.5. `can_apply_backup` never appeared, so the refusal path is unverified |
+| `create_local_backup` | `LocalBackup{CREATE}` then `LocalBackup{UPDATE, backup_json}` pushes, the last with `is_last_chunk` | captured only | section 10.5; independent CorOS 4.1.0 capture 2026-09-11. `can_apply_backup` never appeared, so the refusal path is unverified |
 | `recall_preset` / `read_preset` | `SetlistPosition{UPDATE, folder_key, position, is_factory, request_id}` then a `RecallPreset` push | read-back | the push echoes the recall's `request_id` |
-| `read_current_preset` / `read_current_preset_push` | `RecallPreset{READ, request_id}` | read-back | the live grid, no side effects. The push variant hands back the whole reply with `reason` |
+| `read_current_preset` / `read_current_preset_push` | `RecallPreset{READ, request_id}` | read-back | 4.1.0 contributed hardware measurement 2026-09-11 used the two-attempt fix in PR #62; remains guarded in `QuadCortex41` until that dependency lands. The live grid, no side effects; the push variant returns the whole reply with `reason` |
 | `loaded_position` | `SetlistPosition{READ, request_id}` | read-back | which slot is loaded; 3 ms measured |
 | `list_presets` | `File{action: READ}` then `File{folder{files[] = ProductData}}` | read-back | factory listing gzipped; 256 slots; listings lag after a `File` mutation |
-| `switch_scene` | `Scene{UPDATE, selected_scene}` | on-unit | zero-based |
-| `set_chain_input` / `reroute_grid_input` | `Grid{UPDATE, preset{chains{row, in_portid}}}` | read-back + on-unit | row-keyed; the only shape that persists input routing |
-| `set_param` | `Grid{UPDATE, preset{chains{row, models{column, params{index, param_values{float_value}}}}}}` | read-back | value round-trips 0.0 to 1.0; per-scene values via promote + switch_scene + write |
-| `set_bypass` | `Grid{UPDATE, preset{bypass{row, colBypass{column, sceneBypass[scene]{bypass}}}}}` | on-unit | block greyed out on the unit |
-| `set_scene_label` / `set_scene_color` | `SceneLabel` / `SceneColor{UPDATE, index, label/color}` | read-back | colour is ARGB uint32; exact round-trip |
+| `switch_scene` | `Scene{UPDATE, selected_scene}` | on-unit | zero-based; CorOS 4.1.0 contributed hardware run 2026-09-11 |
+| `active_scene` | `Scene{READ, request_id}` | read-back | zero-based current scene; CorOS 4.1.0 contributed hardware run 2026-09-11 |
+| `set_chain_input` / `reroute_grid_input` | `Grid{UPDATE, preset{chains{row, in_portid}}}` | read-back + on-unit | row-keyed; the only shape that persists input routing; CorOS 4.1.0 contributed hardware run 2026-09-11 |
+| `set_param` | `Grid{UPDATE, preset{chains{row, models{column, params{index, param_values{float_value}}}}}}` | read-back | value round-trips 0.0 to 1.0; per-scene values via promote + switch_scene + write; CorOS 4.1.0 contributed hardware run 2026-09-11 |
+| `set_bypass` | `Grid{UPDATE, preset{bypass{row, colBypass{column, sceneBypass[scene]{bypass}}}}}` | on-unit | block greyed out on the unit; CorOS 4.1.0 contributed hardware run 2026-09-11 |
+| `set_scene_label` / `set_scene_color` | `SceneLabel` / `SceneColor{UPDATE, index, label/color}` | read-back | colour is ARGB uint32; exact round-trip; CorOS 4.1.0 contributed hardware run 2026-09-11 |
 | `copy_scene` | `SceneCopy{UPDATE, from_index, to_index, is_swap}` | read-back + on-unit | `from_index` and `is_swap` confirmed; label and colour travel with the state |
 | `save_current_preset` | `File{CREATE, folder{key, files{index, name, instrument}}}` | read-back | snapshots the grid; `preset_payload` is ignored |
 | `delete_preset` | `File{DELETE, folder{files{key: "<setlist>/<name>.pb"}}}` | one captured `DELETE` + three-session key evidence + read-back | Every occupied entry in those captures exposed that exact key. The API also accepts the listing's `ProductData`, validates that its device-provided key belongs to the named setlist, and sends the key unchanged. Works, but asynchronously: a listing within about 2 s is stale, about 5 s is reliable |
@@ -2137,7 +2138,7 @@ wire, with no independent read-back.
 | `set_param(Splitter(row), ...)` | `Grid{UPDATE, preset{chains{row, combined_splitter{params{index, param_values}}}}}` | read-back | writes `combined_splitter`, not `splitter[]`; indices follow unified model 10004 |
 | `splits` | reads `Chain.split_control_points` | read-back | `split == -1` means serial; `mix == -1` with `split >= 0` is a branch that never rejoins |
 | `set_param(Tempo(), ...)` | `Grid{UPDATE, preset{tempoProgramData{params{index, param_values}}}}` | read-back | per-preset tempo, LED and metronome; not row-keyed yet applied |
-| `tempo_mode` / `set_tempo_mode` | `GlobalTempo{READ}`, and `GlobalTempo{UPDATE, params{index: 1, param_values}}` | read-back + on-unit | section 8.1. A device setting; the reader waits for a reply carrying parameters |
+| `tempo_mode` / `set_tempo_mode` | `GlobalTempo{READ}`, and `GlobalTempo{UPDATE, params{index: 1, param_values}}` | read-back + on-unit | section 8.1. A device setting; the reader waits for a reply carrying parameters; CorOS 4.1.0 contributed hardware run 2026-09-11 |
 | `set_param(LaneOutput(row), ...)` | `Grid{UPDATE, preset{chains{row, output_control{hash: 23000, params{index, param_values}}}}}` | read-back | `VOLUME`, `PAN`, `MUTE`, `SOLO` per row; `PAN` 0.5 to 0.0 survived save and read-back. `Db(...)` for `VOLUME` over -40..+12 |
 | `move_block` | `GridMove{move{from_row, from_col, to_row, to_col, is_drop}}` | read-back | a cross-row move makes the unit create a branch |
 | `set_split` / `clear_split` | `Grid{UPDATE, preset{chains{row, split_control_points{split, mix}}}}` | read-back | activates or clears a row's branch |
@@ -2149,7 +2150,7 @@ wire, with no independent read-back.
 | `set_tuner_reference` | `Tuner{UPDATE, frequency}` | read-back + on-unit | an offset in Hz from 440, taken as `Hertz` |
 | `set_tuner_mute` / `restore_audio` | `Tuner{UPDATE, mute}` | read-back + by ear | `restore_audio` clears the preference |
 | `looper` | `Looper{READ}` | read-back | full status; transport not driven |
-| `set_input_port` / `set_output_port` / `set_usb_port` / `set_midi_thru` / `set_output_pairing` | `IOSettings{UPDATE, settings{...}}` | read-back | sparse and port-keyed, one field per message. The input gain converts `Db` over -12..+60; output and USB levels take `Encoded` |
+| `set_input_port` / `set_output_port` / `set_usb_port` / `set_midi_thru` / `set_output_pairing` | `IOSettings{UPDATE, settings{...}}` | read-back | sparse and port-keyed, one field per message. The input gain converts `Db` over -12..+60; output and USB levels take `Encoded`; CorOS 4.1.0 `set_input_port` contributed hardware run 2026-09-11 |
 | `set_output_mute` | `IOSettings{UPDATE, settings{out_port{output_port_id, mute}}}` | read-back + on-unit | must travel alone |
 | `set_param_option` | `Grid{UPDATE, ..., params{index, param_values{float_value}}}` | read-back + on-unit | picks a list parameter's option by name; `index / (count - 1)` |
 | `captures` / `set_capture` | `File{READ}` on `local_nc_root`; then `Grid{UPDATE, ..., params{index: 5, param_values{string_value}}}` | read-back + on-unit | `file_name` = hash + display name selects the capture |
@@ -2163,7 +2164,7 @@ wire, with no independent read-back.
 | `set_stomp_assignment` / `clear_stomp_assignment` | `Grid{DELETE, stomp_mode_assignments{row, column}}` then `Grid{UPDATE, ...{stomp_index}}` | read-back + on-unit | the unit's own two-message sequence |
 | `set_stomp_momentary` | `Grid{UPDATE, preset{stomp_is_momentary{key, value}}}` | read-back + on-unit | keyed by footswitch; lands only on a switch driving exactly one block |
 | `set_stomp_label` | `Grid{UPDATE, preset{stomp_labels` or `single_stomp_labels{key, value}}}` | read-back + on-unit | `single_stomp_labels` is what the unit writes for a single-block switch |
-| `set_expression` / `clear_expression` | `Grid{UPDATE, preset{chains{row, models{column, params{index, expression, expression_min, expression_max}}}}}` | read-back + on-unit | pedal 1 or 2; `expression: 0` unassigns. Refuses a lane output's `MUTE` and `SOLO` |
+| `set_expression` / `clear_expression` | `Grid{UPDATE, preset{chains{row, models{column, params{index, expression, expression_min, expression_max}}}}}` | read-back + on-unit | pedal 1 or 2; `expression: 0` unassigns. Refuses a lane output's `MUTE` and `SOLO`; both CorOS 4.1.0 contributed hardware run 2026-09-11 |
 | `expression_assignments(preset)` | reads `params{expression, expression_min, expression_max}` across `models`, `output_control`, `input_control`, `mixer` and `combined_splitter` | fixture | position is the index. Not walked: `chain.splitter` and `Tempo` |
 | `set_midi_out` / `set_preset_load_midi_out` | `MIDISettings{UPDATE, general_midi_messages` or `preset_load_messages{messages{source, msg}}}` | read-back | a `Grid` update carrying the preset's own midi fields does nothing |
 | `set_param(..., "a string")` | `Grid{UPDATE, ..., params{index, param_values{string_value}}}` | read-back + on-unit | string-valued parameters, e.g. cab microphone selection |
@@ -2171,9 +2172,10 @@ wire, with no independent read-back.
 | `set_master_volume_assignment` | `GeneralSettings{UPDATE, master_volume_assignment{...}}` | read-back | read-merge-write, because a submessage is replaced wholesale |
 | `set_global_bypass` | `GeneralSettings{UPDATE, global_bypass_cab` / `_ir{row1..row4}}` | read-back | global Cab / IR bypass per row |
 | `set_global_eq_band` | `GlobalEQ{UPDATE, parameters{parameter_index, value}}` | read-back | the raw door; takes `Encoded` only |
-| `set_global_eq` | `GlobalEQ{UPDATE, parameters{parameter_index, value}}` | read-back + on-unit | by band number; `GAIN` takes `Db` over -12..+12 (measured 2026-09-11); `FREQUENCY`, `Q` and the OUT level take `Encoded` |
+| `set_global_eq` | `GlobalEQ{UPDATE, parameters{parameter_index, value}}` | read-back + on-unit | by band number; `GAIN` takes `Db` over -12..+12 (measured 2026-09-11); `FREQUENCY`, `Q` and the OUT level take `Encoded`; CorOS 4.1.0 contributed hardware run 2026-09-11 |
 | `set_mode_cycle` | `Mode{UPDATE, available_modes{modes}}` | read-back | the whole list is replaced; refuses 9 |
-| `settings` / `update_settings` | `GeneralSettings{READ}` / `{UPDATE, <fields>}` | read-back | sparse; refuses `power_option` and `reset_wifi_networks` |
+| `settings` / `update_settings` | `GeneralSettings{READ}` / `{UPDATE, <fields>}` | read-back | sparse; refuses `power_option` and `reset_wifi_networks`; CorOS 4.1.0 `update_settings` contributed hardware run 2026-09-11 |
+| `set_hold_timing` | `GeneralSettings{UPDATE, hold_timing}` | read-back + on-unit | index maps 500–1000 ms in 100 ms steps; CorOS 4.1.0 contributed hardware run 2026-09-11 |
 | `set_scene_bypass_behavior` | `GeneralSettings{UPDATE, scene_block_bypass}` | read-back | global, and it decides what `set_bypass` persists |
 | `io_settings` / `set_input_level` / `set_output_level` | `IOSettings{READ}` / `{UPDATE, settings{in_port` or `out_port{port_id, level}}}` | read-back | also reports impedance, type, ground lift and `plugged` |
 | `global_eq` / `set_global_eq_bypassed` | `GlobalEQ{READ}` / `{UPDATE, bypassed}` | read-back | five bands reported as 28 parameters |

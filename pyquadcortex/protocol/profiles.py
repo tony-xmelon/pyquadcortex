@@ -20,7 +20,7 @@ _DEVICE_NAMES = {pa.VersionMessage.QC: "Quad Cortex",
 
 
 class QuadCortex41(QuadCortex):
-    """Quad Cortex on CorOS 4.1 - connects with 18 measured operations.
+    """Quad Cortex on CorOS 4.1 - 17 operations are currently VERIFIED.
 
     Contributor hardware run on 2026-09-11 (fork commit ``99a5cd5``), combining
     this profile with PR #62's live-preset fix, passed 95 tests with 4
@@ -29,11 +29,13 @@ class QuadCortex41(QuadCortex):
     ``Evidence.CONTRIBUTED`` says here. Profile-aware runs measured the
     operations in ``VERIFIED`` below. ``create_local_backup`` also has its own
     dated 4.1.0 capture, and the separately contributed device-name round trip
-    verifies ``set_device_name``. Every other inherited operation refuses under
-    ``Support.VERIFIED`` and runs with a warning under
-    ``Support.EXPERIMENTAL``. Its generated constants are bound to the
-    contributed CorOS 4.1.0 snapshot rather than the 4.0.1 compatibility
-    imports.
+    verifies ``set_device_name``. Every operation omitted from ``VERIFIED``
+    refuses under ``Support.VERIFIED`` and runs with a warning under
+    ``Support.EXPERIMENTAL``. ``read_current_preset`` was measured only with
+    PR #62's retry implementation
+    and remains guarded until that dependency lands. Its generated constants
+    are bound to the contributed CorOS 4.1.0 snapshot rather than the 4.0.1
+    compatibility imports.
 
     To finish this profile, on a 4.1 unit:
 
@@ -50,7 +52,6 @@ class QuadCortex41(QuadCortex):
         "active_scene",
         "clear_expression",
         "create_local_backup",
-        "read_current_preset",
         "set_bypass",
         "set_chain_input",
         "set_expression",

@@ -19,9 +19,11 @@ sustained stretch without a correction.
 
 `QuadCortex41` now binds a generated CorOS 4.1.0 snapshot containing 422 factory
 models and its firmware-specific parameter and option constants. Contributor
-hardware runs on 2026-09-11 verified 16 inherited operations; the independently
+hardware runs on 2026-09-11 verified 15 inherited operations; the independently
 captured local-backup operation and contributed device-name round trip are
-retained as the seventeenth and eighteenth verified methods.
+retained as the sixteenth and seventeenth verified methods. `read_current_preset`
+was measured only with the separate #62 retry change, so it remains guarded
+until that dependency lands.
 Unversioned `protocol.models`, `params`, and `options` remain the CorOS 4.0.1
 compatibility snapshot.
 
@@ -29,6 +31,18 @@ The snapshots are intentionally distinct. Notably, Minivoicer mode value 2 is
 `CHROM` on 4.0.1 but `NATURAL_MINOR` on 4.1.0, and the 4.1 Overlord Synth scale
 is no longer a boolean-shaped control. Callers should use `qc.models`,
 `qc.params`, and `qc.options` from the connected profile.
+
+Six factory names also changed at stable wire IDs, so code using the old names
+must select names from the connected profile:
+
+| ID | CorOS 4.0.1 | CorOS 4.1.0 |
+|---:|---|---|
+| 3000 | `MICROTUBES_B3K` | `DOUGLAS_MT_3K` |
+| 3006 | `MICROTUBES_VMT` | `DOUGLAS_VINTAGE_MT` |
+| 21001 | `N210C_DARKGLASS_M` | `N210_DOUGLAS_CERAMIC_M` |
+| 21005 | `N212_DARKGLASS_NEO_M` | `N212_DOUGLAS_NEODYMIUM_M` |
+| 33001 | `N210C_DARKGLASS_ST` | `N210_DOUGLAS_CERAMIC_ST` |
+| 33005 | `N212_DARKGLASS_NEO_ST` | `N212_DOUGLAS_NEODYMIUM_ST` |
 ### Rename the unit, drive undo/redo, and read inhibited modules
 
 `set_device_name()` sends a sparse Version update. `undo()` and `redo()` drive

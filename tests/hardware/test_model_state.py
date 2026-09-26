@@ -203,8 +203,10 @@ def test_the_burst_warms_identity_from_connects_own_version_read(
     unit's own ``Version{READ}`` about 1 ms behind it (the question it asks Cortex
     Control, section 4.4), and the ``UPDATE`` carrying
     ``cortex_control_version_valid`` that answers our announce (+0.73 s). The
-    same three shapes were captured on CorOS 4.1.0 on 2026-09-11; that exact
-    trace corrects four earlier connection windows that missed the last shape.
+    same three shapes were captured on CorOS 4.1.0 on 2026-09-11, at
+    +0.8476 s, +0.8484 s and +0.8982 s. Four narrower 4.1.0 observation windows
+    on 2026-09-04 did not include the last shape before their windows ended;
+    neither observation establishes a profile-specific difference.
     ``_hello`` itself still sends no READ; the 2026-08-27 measurement of one
     inbound ``Version`` stands for ``_hello`` alone.
 
@@ -303,14 +305,9 @@ def test_a_version_read_is_answered_and_then_questioned(
         f"one Version READ brought back {len(answers)} identity answers: {seen}")
     assert len(reads) == 1, (
         f"one Version READ brought back {len(reads)} unit questions: {seen}")
-    if issubclass(profile, profiles.QuadCortex41):
-        assert len(announce_answers) <= 1, (
-            "the earlier 4.1 connect announce was answered "
-            f"{len(announce_answers)} times")
-    else:
-        assert not announce_answers, (
-            "the CorOS 4.0.1 announce answer arrived long after its measured "
-            f"+0.73 s window: {announce_answers}")
+    assert not announce_answers, (
+        "the connect announce was answered, contrary to the measured "
+        f"three-message handshake: {announce_answers}")
     assert not unknown, f"one Version READ window contained unknown shapes: {unknown}"
     answer, question = answers[0], reads[0]
     assert answer.action == pa.MessageAction.UPDATE, (
