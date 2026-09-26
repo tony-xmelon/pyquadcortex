@@ -241,6 +241,16 @@ behind each one is in the lab repository,
 - **Scope:** `tests/hardware/`, its readme, `tests/test_hardware_report.py`.
   No decision record: ADR-0005 already promises this.
 
+### 2026-09-19 - The CorOS 4.1 profile owns its constants snapshot
+
+- **What changed:** `QuadCortex41` binds its contributed models, parameters and
+  options and declares only operations backed by profile-specific hardware
+  evidence. Unversioned constant modules remain the 4.0.1 compatibility API.
+- **Why:** ADR-0020 makes firmware-specific constants and evidence properties
+  of the resolved profile; sharing 4.0.1 constants silently mislabels 4.1 wire
+  values.
+- **Scope:** generated 4.1 snapshot, profile registry, tests and public docs.
+
 ### 2026-09-17 - The environment is held to the pins it claims to satisfy
 
 - **What changed:** `tests/test_packaging.py` compares each installed version
@@ -271,16 +281,6 @@ behind each one is in the lab repository,
   four documents. No ADR: this settles a question in
   [`domain-model.md`](domain-model.md)'s appendix. No hardware test: screen
   readings live in the fixture.
-
-### 2026-09-19 - The CorOS 4.1 profile owns its constants snapshot
-
-- **What changed:** `QuadCortex41` binds its contributed models, parameters and
-  options and declares only operations backed by profile-specific hardware
-  evidence. Unversioned constant modules remain the 4.0.1 compatibility API.
-- **Why:** ADR-0020 makes firmware-specific constants and evidence properties
-  of the resolved profile; sharing 4.0.1 constants silently mislabels 4.1 wire
-  values.
-- **Scope:** generated 4.1 snapshot, profile registry, tests and public docs.
 
 ### 2026-09-15 - The catalog carries the option vocabulary; the screen is a second renderer
 

@@ -20,7 +20,8 @@ sustained stretch without a correction.
 `QuadCortex41` now binds a generated CorOS 4.1.0 snapshot containing 422 factory
 models and its firmware-specific parameter and option constants. Contributor
 hardware runs on 2026-09-11 verified 16 inherited operations; the independently
-captured local-backup operation is retained as a seventeenth verified method.
+captured local-backup operation and contributed device-name round trip are
+retained as the seventeenth and eighteenth verified methods.
 Unversioned `protocol.models`, `params`, and `options` remain the CorOS 4.0.1
 compatibility snapshot.
 
