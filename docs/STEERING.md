@@ -168,6 +168,8 @@ Decisions are recorded in [`ADR.md`](ADR.md):
 | ADR-0019 | The frame trailer's flags are read and reported; an encrypted payload is labelled, not decrypted |
 | ADR-0020 | Connect resolves a device profile, and nothing else branches on firmware or model |
 | ADR-0021 | An approval stops counting once the pull request's code changes |
+| ADR-0022 | The payload a catalog snapshot is generated from is committed beside it |
+| ADR-0024 | A timed device gesture is one atomic transport sequence |
 
 ## 8. Open Questions
 
@@ -230,6 +232,16 @@ access to the unit, not compute.
 Entries are short by design ([`writing.md`](writing.md)). The full narrative
 behind each one is in the lab repository,
 `doc/pyquadcortex/history/steering-change-log.md`, and in the pull requests.
+
+### 2026-09-27 - Remote screen control is narrowed to reviewed operations
+
+- **What changed:** the public PR surface is limited to `capture_screen()` and
+  `tap_screen()`. The 4.1 hardware test skips unmeasured profiles, and protocol
+  coverage records the broker-observed 800 x 480 capture and tap behavior.
+- **Why:** swipe and graphics-tree were added without review and lacked
+  operation-specific evidence on this branch.
+- **Scope:** protocol client/profile, screen tests and API/protocol/coverage
+  documentation. See ADR-0024 for atomic gesture timing.
 
 ### 2026-09-21 - The hardware suite puts the edited flag back
 

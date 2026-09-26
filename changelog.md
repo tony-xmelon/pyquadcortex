@@ -25,6 +25,12 @@ factory flag. The address is not optional on the wire: a bare `Screenshot{READ}`
 is ignored. The CorOS 4.0.1 profile refuses the operation because that wire
 shape has only been measured on 4.1.0.
 
+### CorOS 4.1 physical-screen capture and tap are exposed
+
+`QuadCortex41` can capture the full 800 x 480 display and tap a pixel. Gesture
+sequences are atomic and a capture primes the remote-control surface before
+input. The 4.0.1 profile keeps these operations visible but refuses them because
+they are unmeasured there.
 ### Rename the unit, drive undo/redo, and read inhibited modules
 
 `set_device_name()` sends a sparse Version update. `undo()` and `redo()` drive

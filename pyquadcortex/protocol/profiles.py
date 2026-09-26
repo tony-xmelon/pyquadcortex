@@ -8,7 +8,7 @@ registry ``connect()`` resolves through. Adding a profile is: subclass
 """
 from __future__ import annotations
 
-from pyquadcortex.protocol.client import QuadCortex
+from pyquadcortex.protocol.client import QuadCortex, ScreenshotError, _as_position
 from pyquadcortex.protocol.proto import ProductionAutomation_pb2 as pa
 from pyquadcortex.protocol.support import Evidence, Hardware, NoSnapshot
 
@@ -22,14 +22,17 @@ class QuadCortex41(QuadCortex):
     PR #42's description (2026-09-03) reports ``pytest --hardware``: 2742
     passed, 8 skipped, on a Quad Cortex running CorOS 4.1.0 / app firmware
     d14e, by tony-xmelon. That is a contributor's report and the maintainer has
-    not reproduced it, which is what ``Evidence.CONTRIBUTED`` says here.
-    ``create_local_backup`` and ``preset_screenshot`` have dated 4.1.0 captures.
-    The contributed device-name round trip also verified ``set_device_name``;
-    all three are VERIFIED. Other inherited operations refuse under
-    ``Support.VERIFIED`` and run with
-    a warning under ``Support.EXPERIMENTAL``. The snapshot is deliberately absent:
-    binding the 4.0.1 constants would hand a 4.1 user names their unit does not
-    use.
+    not reproduced it, which is what ``Evidence.CONTRIBUTED`` says here. The
+    connection is therefore known to work with this handshake and announce
+    string. ``capture_screen`` has a dated 4.1.0 hardware-test result;
+    ``tap_screen`` was directly verified on 2026-09-27 at (100, 147): it opened
+    the Plugins chooser on an empty Grid and the second tap restored the Grid.
+    ``preset_screenshot`` and ``create_local_backup`` also have dated 4.1.0
+    captures, and the contributed device-name round trip verified
+    ``set_device_name``. All five are VERIFIED. Other inherited operations
+    refuse under ``Support.VERIFIED`` and run with a warning under
+    ``Support.EXPERIMENTAL``. The snapshot is deliberately absent: binding the
+    4.0.1 constants would hand a 4.1 user names their unit does not use.
 
     To finish this profile, on a 4.1 unit:
 
@@ -45,7 +48,9 @@ class QuadCortex41(QuadCortex):
     MEASURED_ON = ("4.1.0",)
     EVIDENCE = Evidence.CONTRIBUTED
     VERIFIED = frozenset({
-        "create_local_backup", "preset_screenshot", "set_device_name"})
+        "capture_screen", "create_local_backup", "preset_screenshot",
+        "set_device_name", "tap_screen",
+    })
     models = NoSnapshot("coros_4_1_0")
     params = NoSnapshot("coros_4_1_0")
     options = NoSnapshot("coros_4_1_0")
@@ -53,10 +58,40 @@ class QuadCortex41(QuadCortex):
     def preset_screenshot(self, folder_name: str, position,
                           is_factory: bool = False,
                           timeout: float = 10.0) -> bytes:
-        """Return the CorOS 4.1 device-rendered preset PNG."""
+        """Return a preset PNG, or the live display for a loaded empty slot.
+
+        Stored slots use the device's 800 x 384 preset rendering. If the
+        requested slot is currently loaded but has no preset name (the unit's
+        unsaved/empty slot), return the live 800 x 480 display capture instead.
+        This checks the live address and preset read, not a full directory scan,
+        and never recalls or navigates to another slot.
+        """
+        index = _as_position(position)
+        if isinstance(position, bool) or index < 0:
+            raise ValueError("position must be a slot name or non-negative integer")
+
+        loaded = self.loaded_position(timeout=timeout)
+        loaded_folder_name = loaded.folder_key.rstrip("/").rsplit("/", 1)[-1]
+        same_address = (
+            loaded_folder_name == folder_name
+            and loaded.position == index
+            and loaded.is_factory == is_factory
+        )
+        if same_address:
+            current = self.read_current_preset(timeout=timeout)
+            if not current.name:
+                return self.capture_screen(timeout=timeout)
+
         return self._preset_screenshot(
             folder_name, position, is_factory=is_factory, timeout=timeout)
 
+    def capture_screen(self, timeout: float = 10.0) -> bytes:
+        """Return the CorOS 4.1 physical-display PNG."""
+        return self._capture_screen(timeout=timeout)
+
+    def tap_screen(self, x: float, y: float, timeout: float = 10.0) -> None:
+        """Tap a CorOS 4.1 physical-screen pixel coordinate."""
+        self._tap_screen(x, y, timeout=timeout)
 
 class QuadCortexMini(QuadCortex):
     """Quad Cortex Mini - recognised, not supported, and here to be finished.

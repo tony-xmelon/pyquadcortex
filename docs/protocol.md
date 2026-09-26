@@ -311,8 +311,10 @@ The host's `License` read that provoked it carries `08 03` and `ENCRYPTED = 0`
 ## 3. Message types and actions
 
 Every frame's trailer carries a `CortexMessageType.Enum` value. The schema
-declares **71 types** (`Undefined = 0` through `GenerateTestPreset = 70`, with
-`NumberOfMessageTypes = 71` as a sentinel). The ones this library uses most:
+declares **73 types** (`Undefined = 0` through `RemoteControl = 72`, with
+`NumberOfMessageTypes = 73` as a sentinel). `ModelPreset = 71` is recovered
+but unobserved; `RemoteControl = 72` is the live-screen path, distinct from
+preset-thumbnail `Screenshot = 25`. The ones this library uses most:
 
 | Value | Type | Role here |
 |---|---|---|
@@ -1792,6 +1794,29 @@ every entry for that id.
 
 **Gig View** is `ShowGigView{UPDATE, show}`; `show` has no presence.
 
+### 11.8 CorOS 4.1 physical-screen remote control
+
+`RemoteControl{READ, screenshot:{}}` produces an uncorrelated `UPDATE` carrying
+a complete 800 x 480 `PNG`; it has no `request_id`, so `capture_screen()` waits
+for the broadcast and rejects region frames. This is distinct from preset
+thumbnail `Screenshot = 25`.
+
+The observed tap on CorOS 4.1.0 sent `type: 1`, then 20 ms later omitted the
+proto3-default `type: 0`. The recovered labels interpret this as `RELEASE=1`
+then `PRESS=0`, though swapped labels fit the bytes equally well. Sending the
+labelled `PRESS`/`RELEASE` order left touch held and eventually entered Grid drag
+mode. On 2026-09-04, tony-xmelon observed the value-1/value-0 pair at Grid
+coordinate `(184, 147)` open the intended block; the following capture showed
+its editor. `TAP=3` and `MOVE=2` attempts were unreliable in that retained probe,
+which has no defensible trial count. An unprimed pair did not land; one
+screenshot read and a conservative 300 ms wait did. That observation does not
+establish a minimum settle time. Neither mouse message is acknowledged, so
+`tap_screen()` returns after the timed sequence is transmitted.
+
+The capture and tap shapes have contributed CorOS 4.1.0 evidence and are
+refused by the unmeasured 4.0.1 profile. Swipe and graphics-tree operations are
+not included in this API pending separate review and hardware evidence.
+
 **Undo and redo** are drivable: a sparse `UndoRedo{UPDATE, undo: true}`
 (`08 01 28 01`) reverses the last grid edit and `redo: true` (`08 01 30 01`)
 reapplies it. Measured 2026-09-03 on CorOS 4.0.1 by preset read-back, and by a
@@ -2179,6 +2204,8 @@ wire, with no independent read-back.
 | `set_block` | `Grid{UPDATE, preset{chains{row, models{column, hash}}}}` | read-back + on-unit | a placement can be refused silently, for DSP capacity or a port conflict; verified against the echo and a read-back |
 | `remove_block` | `Grid{action: DELETE, preset{chains{row, models{column, hash: 0}}}}` | read-back + on-unit | the action marks the removal |
 | `catalog` | `ModelRepo{READ}` then `ModelRepo{model_repo_payload}` | read-back | gzip(tar(ModelRepo.xml)) |
+| `capture_screen` | `RemoteControl{READ, screenshot:{}}` then uncorrelated `UPDATE` with full PNG | shared broker capture | CorOS 4.1.0, 800 x 480; Python hardware suite still requires direct HID execution |
+| `tap_screen(x, y)` | screenshot prime, then atomic `RemoteControl{UPDATE, mouse}` pair | shared broker tap + screen readback | CorOS 4.1.0; tap at `(100, 147)` opened the Plugins chooser and a second tap restored the Grid; preset remained clean |
 
 ## Open questions
 
