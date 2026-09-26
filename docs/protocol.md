@@ -332,6 +332,7 @@ preset-thumbnail `Screenshot = 25`. The ones this library uses most:
 | 49 | `Connection` | connected / disconnected announce |
 | 51 | `ModelRepo` | required readiness step in the handshake, and the catalog |
 | 52 | `ResetCommsBuffers` | session hello with a session token |
+| 72 | `RemoteControl` | physical-screen capture and touch input |
 
 `registry.py` registers 70 of those 72 enum values (the 71 types plus the
 sentinel) so the RX path can decode them.
@@ -1824,6 +1825,15 @@ which has no defensible trial count. An unprimed pair did not land; one
 screenshot read and a conservative 300 ms wait did. That observation does not
 establish a minimum settle time. Neither mouse message is acknowledged, so
 `tap_screen()` returns after the timed sequence is transmitted.
+
+For `(184, 147)`, the serialized protobuf payloads (not USB/HID reports) are
+`08 01 1a 0c 0d 00 00 38 43 15 00 00 13 43 18 01`, then
+`08 01 1a 0a 0d 00 00 38 43 15 00 00 13 43`. The first carries numeric
+`type: 1`; the second omits the proto3-default `type: 0`. Those bytes are the
+measurement; the enum labels are recovered-schema interpretation, not a
+separate observation. At `(0, 0)`, the second payload is `08 01 1a 00`; this
+default-coordinate boundary is pinned offline, but has not been separately
+verified on the unit.
 
 On 2026-09-27, tony-xmelon repeated the direct-HID check from an empty Grid:
 `(100, 147)` opened the Plugins chooser; tapping the same point again restored
