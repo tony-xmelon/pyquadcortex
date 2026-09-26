@@ -288,17 +288,34 @@ def test_empty_loaded_preset_slot_returns_live_screen_without_screenshot_request
     assert not fake.sent
 
 
-def test_unloaded_slot_does_not_use_current_screen_as_its_result():
-    # An arbitrary unloaded slot cannot be distinguished from a saved slot
-    # without listing it; that remote read belongs in a separate lookup API.
-    # This test pins that no live-screen image is mislabeled as another slot.
+def test_empty_loaded_slot_still_returns_screen_when_preset_read_times_out():
+    fake = FakeTransport()
+    qc = _screenshot_client(fake)
+    qc.loaded_position = lambda timeout: type("Position", (), {
+        "folder_key": "/media/p4/Presets/My Presets",
+        "position": 52, "is_factory": False,
+    })()
+
+    def empty_slot_read(timeout):
+        raise TimeoutError("empty slot has no RecallPreset reply")
+
+    qc.read_current_preset = empty_slot_read
+    live_png = b"\x89PNG\r\n\x1a\ncurrent display"
+    qc.capture_screen = lambda timeout: live_png
+
+    assert qc.preset_screenshot("My Presets", 52) == live_png
+    assert not fake.sent
+
+
+def test_unloaded_slot_screenshot_timeout_is_not_hidden_by_live_capture():
+    # A screenshot of the current display must not be reported as a different
+    # slot's image when that slot is not the one currently loaded.
     fake = FakeTransport({"ScreenshotMessage": None})
     qc = _screenshot_client(fake)
     qc.loaded_position = lambda timeout: type("Position", (), {
         "folder_key": "/media/p4/Presets/My Presets",
         "position": 7, "is_factory": False,
     })()
-    qc.read_current_preset = lambda timeout: type("Preset", (), {"name": ""})()
 
     with pytest.raises(client.ScreenshotError, match="did not contain PNG"):
         qc.preset_screenshot("My Presets", 52)

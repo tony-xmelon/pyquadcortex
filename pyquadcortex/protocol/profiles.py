@@ -82,7 +82,14 @@ class QuadCortex41(QuadCortex):
             and loaded.is_factory == is_factory
         )
         if same_address:
-            current = self.read_current_preset(timeout=timeout)
+            # An empty slot may not answer RecallPreset{READ} at all. Do not
+            # let that prevent the useful result: the screen that is already
+            # visible on the device. The screenshot path is independent of a
+            # saved preset and does not navigate or mutate device state.
+            try:
+                current = self.read_current_preset(timeout=timeout)
+            except TimeoutError:
+                return self.capture_screen(timeout=timeout)
             if not current.name:
                 return self.capture_screen(timeout=timeout)
 
