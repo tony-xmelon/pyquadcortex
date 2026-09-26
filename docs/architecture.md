@@ -284,8 +284,9 @@ device.read() -> one 129-byte input report
 
 ## send vs send_sequence vs request vs await_broadcast
 
-Choosing correctly is most of the work of adding an operation. The first three
-rows serve one exchange. The last is how a long-lived caller watches the link.
+Choosing correctly is most of the work of adding an operation. The first four
+rows send one exchange or wait for its answer. `add_listener` is how a long-lived
+caller watches the link.
 
 | Transport method | Use when | Blocking | Correlation |
 |---|---|---|---|

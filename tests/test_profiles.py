@@ -256,6 +256,7 @@ def test_the_4_1_profile_exposes_only_operations_with_contributed_evidence():
     assert issubclass(cls, client.QuadCortex)
     assert cls.MEASURED_ON == ("4.1.0",)
     assert cls.EVIDENCE is support.Evidence.CONTRIBUTED
+    assert cls.HARDWARE.display_size == (800, 480)
     verified = {
         "capture_screen", "create_local_backup", "preset_screenshot",
         "set_device_name", "tap_screen",
