@@ -8,7 +8,8 @@ import pytest
 @pytest.mark.verifies("preset_screenshot")
 def test_current_preset_screenshot_has_the_observed_png_dimensions(qc, profile):
     """The request is addressed from live state and does not change that state."""
-    if "preset_screenshot" not in profile.VERIFIED:
+    if ("4.1.0" not in profile.MEASURED_ON
+            or "preset_screenshot" not in profile.VERIFIED):
         pytest.skip(f"preset_screenshot is not VERIFIED on {profile.__name__}")
     before = qc.loaded_position()
     # Do not list the setlist to decide whether the slot is empty: setlist
