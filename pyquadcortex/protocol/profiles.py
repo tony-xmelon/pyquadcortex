@@ -62,13 +62,14 @@ class QuadCortex41(QuadCortex):
     def preset_screenshot(self, folder_name: str, position,
                           is_factory: bool = False,
                           timeout: float = 10.0) -> bytes:
-        """Return a preset PNG, or the live display for a loaded empty slot.
+        """Return a preset PNG, or the live display for the currently loaded slot.
 
         Stored slots use the device's 800 x 384 preset rendering. If the
-        requested slot is currently loaded but has no preset name (the unit's
-        unsaved/empty slot), return the live 800 x 480 display capture instead.
-        This checks the live address and preset read, not a full directory scan,
-        and never recalls or navigates to another slot.
+        requested slot is currently loaded, return the live 800 x 480 display
+        capture instead. This also handles an empty slot without waiting for a
+        stored-preset screenshot reply that the unit will never send. The
+        method checks the live address, not a full directory scan, and never
+        recalls or navigates to another slot.
         """
         index = _as_position(position)
         if isinstance(position, bool) or index < 0:
@@ -81,18 +82,14 @@ class QuadCortex41(QuadCortex):
             and loaded.position == index
             and loaded.is_factory == is_factory
         )
-        try:
-            return self._preset_screenshot(
-                folder_name, position, is_factory=is_factory, timeout=timeout)
-        except TimeoutError:
-            # An empty slot has no stored-preset screenshot to return. If it is
-            # already on screen, capture that screen instead; never make the
-            # caller wait on a separate RecallPreset read just to discover this.
-            # For any other address, a live capture would silently show the
-            # wrong slot, so preserve the timeout.
-            if same_address:
-                return self.capture_screen(timeout=timeout)
-            raise
+        if same_address:
+            # The live screen is authoritative for the slot already on the
+            # device. In particular, an empty slot has no stored Screenshot
+            # reply at all, so asking for one first would turn a screenshot
+            # into a timeout-shaped probe. Capture the display directly.
+            return self.capture_screen(timeout=timeout)
+        return self._preset_screenshot(
+            folder_name, position, is_factory=is_factory, timeout=timeout)
 
     def capture_screen(self, timeout: float = 10.0) -> bytes:
         """Return the CorOS 4.1 physical-screen PNG."""

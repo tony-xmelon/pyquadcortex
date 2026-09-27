@@ -273,7 +273,7 @@ def test_preset_screenshot_accepts_a_display_slot_name():
     assert fake.sent[-1].index == 218
 
 
-def test_empty_loaded_slot_falls_back_to_live_screen_when_screenshot_times_out():
+def test_loaded_slot_uses_live_screen_without_waiting_for_a_preset_screenshot():
     fake = FakeTransport()
     qc = _screenshot_client(fake)
     qc.loaded_position = lambda timeout: type("Position", (), {
@@ -281,19 +281,15 @@ def test_empty_loaded_slot_falls_back_to_live_screen_when_screenshot_times_out()
         "position": 52, "is_factory": False,
     })()
 
-    def empty_slot_screenshot(message, timeout=5.0):
-        fake.sent.append(message)
-        raise TimeoutError("empty slot has no stored screenshot")
-
-    fake.request = empty_slot_screenshot
     live_png = b"\x89PNG\r\n\x1a\ncurrent display"
-    qc.capture_screen = lambda timeout: live_png
+    captures = []
+    qc.capture_screen = lambda timeout: captures.append(timeout) or live_png
     qc.read_current_preset = lambda **kwargs: pytest.fail(
         "screenshot must not depend on reading a saved preset")
 
     assert qc.preset_screenshot("My Presets", 52) == live_png
-    assert len(fake.sent) == 1
-    assert isinstance(fake.sent[0], pa.ScreenshotMessage)
+    assert fake.sent == []
+    assert captures == [10.0]
 
 
 def test_non_loaded_slot_screenshot_timeout_is_not_hidden_by_live_capture():
