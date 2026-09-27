@@ -81,20 +81,18 @@ class QuadCortex41(QuadCortex):
             and loaded.position == index
             and loaded.is_factory == is_factory
         )
-        if same_address:
-            # An empty slot may not answer RecallPreset{READ} at all. Do not
-            # let that prevent the useful result: the screen that is already
-            # visible on the device. The screenshot path is independent of a
-            # saved preset and does not navigate or mutate device state.
-            try:
-                current = self.read_current_preset(timeout=timeout)
-            except TimeoutError:
+        try:
+            return self._preset_screenshot(
+                folder_name, position, is_factory=is_factory, timeout=timeout)
+        except TimeoutError:
+            # An empty slot has no stored-preset screenshot to return. If it is
+            # already on screen, capture that screen instead; never make the
+            # caller wait on a separate RecallPreset read just to discover this.
+            # For any other address, a live capture would silently show the
+            # wrong slot, so preserve the timeout.
+            if same_address:
                 return self.capture_screen(timeout=timeout)
-            if not current.name:
-                return self.capture_screen(timeout=timeout)
-
-        return self._preset_screenshot(
-            folder_name, position, is_factory=is_factory, timeout=timeout)
+            raise
 
     def capture_screen(self, timeout: float = 10.0) -> bytes:
         """Return the CorOS 4.1 physical-screen PNG."""
