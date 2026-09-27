@@ -889,9 +889,9 @@ def _parameter(index: int, p, model_name: str) -> Parameter:
         exp_assignable=p.get("expAssignable") != "false",
         show_as_integer=show_as_integer,
         display_pos=_as_int(p.get("displayPos")),
-        toggle_on=_parse_indexes(p.get("toggleOn")),
-        toggle_off=_parse_indexes(p.get("toggleOff")),
-        toggle_steps=_parse_indexes(p.get("toggleStep")),
+        toggle_on=_parse_replaces(p.get("toggleOn")),
+        toggle_off=_parse_replaces(p.get("toggleOff")),
+        toggle_steps=_parse_replaces(p.get("toggleStep")),
         hidden=p.get("hidden") == "true",
     )
 
@@ -946,7 +946,11 @@ def parse_model_repo(payload: bytes) -> ModelCatalog:
 
 
 def _parse_replaces(value: str | None) -> tuple[int, ...]:
-    """Parse a ``replaces`` attribute: one id, or several comma-separated."""
+    """Parse an optional comma-separated list of catalog integer indexes.
+
+    Invalid parts are deliberately ignored: device catalogs are extensible,
+    and one unfamiliar token must not discard otherwise usable metadata.
+    """
     if not value:
         return ()
     ids = []
@@ -955,19 +959,3 @@ def _parse_replaces(value: str | None) -> tuple[int, ...]:
         if parsed is not None:
             ids.append(parsed)
     return tuple(ids)
-
-
-def _parse_indexes(value: str | None) -> tuple[int, ...]:
-    """Parse one integer, or a comma-separated list of integers.
-
-    Invalid parts are deliberately ignored: device catalogs are extensible,
-    and one unfamiliar token must not discard otherwise usable metadata.
-    """
-    if not value:
-        return ()
-    indexes = []
-    for part in value.split(","):
-        parsed = _as_int(part.strip())
-        if parsed is not None:
-            indexes.append(parsed)
-    return tuple(indexes)
