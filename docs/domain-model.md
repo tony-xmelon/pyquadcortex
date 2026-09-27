@@ -1237,15 +1237,19 @@ twice: a cab's four visible controls on 2026-09-11, and a Solo 100 Lead on
 `MASTER`, `OUTPUT`; the wire lists `MASTER` before `PRESENCE`). A third reading
 that disagreed would unseat it.
 
-| population | count |
-|---|---|
-| models in the catalog | 533 |
-| models a user can place (not hidden, not internal, not in a hidden category) | 503 |
-| of those, placing at least one visible control | 163 |
-| of those, disagreeing with wire order | 142 |
-| placing only some of their visible controls | 23 |
-| placing two controls at the same number | 1 |
-| counting hidden parameters too: placing / disagreeing | 165 / 144 |
+| population | CorOS 4.0.1 | CorOS 4.1.0 |
+|---|---:|---:|
+| models in the catalog | 533 | 633 |
+| models a user can place (not hidden, not internal, not in a hidden category) | 503 | 600 |
+| of those, placing at least one visible control | 163 | 234 |
+| of those, disagreeing with wire order | 142 | 187 |
+| counting hidden parameters too: placing / disagreeing | 165 / 144 | 236 / 189 |
+
+The 4.0.1 figures were measured on 2026-09-15; the 4.1.0 counts were read
+from the live ModelRepo on 2026-09-27. The two screen readings above remain
+4.0.1 observations and are not re-measurements of the 4.1.0 layout.
+On 4.0.1, 23 models place only some visible controls and one places two at the
+same number; these two shape counts have not been re-derived for 4.1.0.
 
 So a sort by `display_pos` is not a complete layout, and what the unit does with
 an unplaced control is unmeasured. `tests/hardware/test_option_structure_on_unit.py`
@@ -1254,7 +1258,8 @@ still uses the index.
 
 ### `<Padding>` is what a block reserves, and the budget is unknown
 
-A child element rather than an attribute. 331 of 533 models carry one, holding
+A child element rather than an attribute. On CorOS 4.0.1, 331 of 533 models
+carry one; on CorOS 4.1.0, 398 of 633 do. They hold
 `cpu`, `dm_heap`, `pm_heap` and `sw`, and more rarely `dm`, `pm`, `sd_heap`, `nw`,
 `dm_hp`. `Model.resources` publishes the numbers under the catalog's own names and
 claims nothing more. On 2026-09-15 the loaded preset's free row was filled with a
@@ -1339,9 +1344,10 @@ tab called Oscillator, drawn as waveform icons. `OSC1 ACTIVE` sits beside it, on
 the same tab, and the flag marks that too. So the flag predicts the screen most
 of the time and not always. Whether it predicts writability is untested; see
 [section 13](#13-still-open). `options.OPTION_AUDIT` does not use it, and
-nothing in the library branches on it. It is also not a boolean: 649 parameters
-say `"true"` and one says `"atma"` (the Freeze block's `MOMENTARY`), the Quad
-Cortex Mini's `device_type`, so the catalog names the model a parameter is hidden
+nothing in the library branches on it. It is also not a boolean: 4.0.1 has 649
+parameters saying `"true"` and 4.1.0 has 795; each has one `"atma"` (the Freeze
+block's `MOMENTARY`), the Quad Cortex Mini's `device_type`, so the catalog names
+the model a parameter is hidden
 on. The Soldano carries two parameters called `CHANNEL`, one flagged and one not,
 and the screen draws the second only, so the unit honours the flag per parameter.
 

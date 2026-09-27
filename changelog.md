@@ -27,6 +27,11 @@ device-name round trip are the sixteenth and seventeenth verified methods.
 Unversioned `protocol.models`, `params`, and `options` remain the CorOS 4.0.1
 compatibility snapshot.
 
+The live CorOS 4.1.0 ModelRepo read on 2026-09-27 contains 633 models, 600
+placeable models, and 398 models with resource metadata. Its `displayPos`
+population is also different from 4.0.1; these are catalog counts, not new
+screen readings. See `docs/domain-model.md` for the side-by-side counts.
+
 The snapshots are intentionally distinct. Notably, Minivoicer mode value 2 is
 `CHROM` on 4.0.1 but `NATURAL_MINOR` on 4.1.0, and the 4.1 Overlord Synth scale
 is no longer a boolean-shaped control. Callers should use `qc.models`,
@@ -349,7 +354,7 @@ on the screen. No library code branches on it.
 New `Parameter.display_pos`. A model's parameters come in wire order, and that is
 not always the order the unit puts them on screen: a Solo 100 Lead draws `GAIN`,
 `BASS`, `MID`, `TREBLE`, `PRESENCE`, `MASTER`, `OUTPUT`, while the wire lists
-`MASTER` before `PRESENCE`. Of the 503 models you can place, 338 never carry it;
+`MASTER` before `PRESENCE`. On CorOS 4.0.1, of the 503 models you can place, 338 never carry it;
 165 carry it somewhere, and on 144 of those the result disagrees with wire order.
 If you are showing a block's controls to a person, sort by it and put the
 unplaced ones last:

@@ -150,10 +150,12 @@ def test_a_list_stamped_absent_still_looks_the_way_it_did_when_looked_at(live_ca
             f"changed - look at the control again before trusting the record.")
 
 
-def test_the_hidden_attribute_is_still_shaped_the_way_it_was_counted(live_xml):
+def test_the_hidden_attribute_is_still_shaped_the_way_it_was_counted(
+        live_xml, profile):
     """`Parameter.hidden` documents two numbers that nothing has been checking.
 
-    649 parameters say `"true"` and exactly one says `"atma"` - the Freeze
+    CorOS 4.0.1 has 649 parameters saying `"true"`; 4.1.0 has 795. Both have
+    exactly one `"atma"` - the Freeze
     block's `MOMENTARY` switch, which is the whole evidence that the catalog
     names the MODEL a parameter is hidden on, and a second independent sign that
     ATMA is the Mini. Both live in a docstring and in `docs/domain-model.md`,
@@ -164,13 +166,21 @@ def test_the_hidden_attribute_is_still_shaped_the_way_it_was_counted(live_xml):
     parameters, `Parameter.hidden` answering only for a Quad Cortex matters more
     than it does today.
     """
+    expected_by_profile = {
+        "QuadCortex": {"true": 649, "atma": 1},
+        "QuadCortex41": {"true": 795, "atma": 1},
+    }
+    expected = expected_by_profile.get(profile.__name__)
+    if expected is None:
+        pytest.skip(f"no hidden-attribute baseline for {profile.__name__}")
+
     values = collections.Counter(
         p.get("hidden") for p in live_xml.iter("Parameter")
         if p.get("hidden") is not None)
-    assert values == {"true": 649, "atma": 1}, (
+    assert values == expected, (
         f"the hidden attribute now reads {dict(values)}; "
-        f"Parameter.hidden and docs/domain-model.md say "
-        f"{{'true': 649, 'atma': 1}}")
+        f"the {profile.__name__} baseline in docs/domain-model.md says "
+        f"{expected}")
 
     atma = [(m.get("name"), p.get("name"))
             for c in live_xml.findall("Category") for m in c.findall("Model")

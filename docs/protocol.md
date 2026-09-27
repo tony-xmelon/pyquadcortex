@@ -1831,6 +1831,16 @@ runs in a hundred against a 100 ms poll (`tests/hardware/conftest.py` waits for
 all four as `BURST_TAIL`). The seed `RecallPreset` sets `action`, `preset` and
 `reason`, and the burst carries no `Grid` pushes.
 
+The Version announcement acknowledgement has varied in the 4.1.0 observations.
+It was present at +0.8982 s in the CorOS 4.1.0 capture on 2026-09-11; two fresh
+direct-HID connections on 2026-09-27 saw only the full identity `UPDATE` and the
+unit's action-only `READ`, while both still completed the state burst. The
+CorOS 4.0.1 capture on 2026-09-07 included the acknowledgement. The hardware
+assertion therefore allows zero or one acknowledgement on every profile and
+continues to reject any unknown Version shape; these observations do not yet
+establish a profile rule or whether the acknowledgement is required for the
+push gate.
+
 ### 12.2 What a recall pushes
 
 Measured 2026-08-15 across two host recalls, all within about 120 ms of the

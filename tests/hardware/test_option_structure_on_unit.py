@@ -111,6 +111,12 @@ def test_every_option_position_lands_where_the_catalog_says(qc, restored, live_c
     preset = qc.read_current_preset()
     targets = _targets(preset, live_catalog)
     assert targets, "the loaded preset has no fixed-list parameters to drive"
+    available = sum(len(labels) for _, _, labels, _, _ in targets)
+    if available < 100:
+        pytest.skip(
+            f"loaded preset exposes only {available} fixed-list positions; "
+            "load a richer saved preset to reach the 100-position evidence "
+            "floor")
 
     # set_param without `scene=` writes the ACTIVE scene, so the read has to
     # look at the same slot rather than assuming scene A.
@@ -180,7 +186,7 @@ def test_every_option_position_lands_where_the_catalog_says(qc, restored, live_c
           f"parameters, all landed where the catalog says")
 
 
-def test_the_displayPos_counts_the_docs_quote_still_hold(live_catalog):
+def test_the_displayPos_counts_the_docs_quote_still_hold(live_catalog, profile):
     """`display_pos` is published on two screen readings, so pin what is countable.
 
     The readings themselves cannot be re-taken without eyes. What CAN be checked
@@ -224,23 +230,37 @@ def test_the_displayPos_counts_the_docs_quote_still_hold(live_catalog):
         "all_placing_any": sum(1 for v in every.values() if placed(v)),
         "all_disagreeing": sum(1 for v in every.values()
                                if placed(v) and disagrees(v)),
-        # These two are over the WHOLE catalog, not the placeable subset, which
-        # is the denominator the docs quote for them ("331 of 533 models").
-        # Pinning the total as well is the point: an earlier version pinned 331
-        # and left `len(live)` free, so a catalog that grew while still having
-        # 331 padded models would have passed green with 533 and the derived 202
-        # going stale in four documents.
+        # These two are over the WHOLE catalog, not the placeable subset. Both
+        # profile baselines are pinned below so a catalog growth cannot leave a
+        # stale denominator looking green.
         "models": len(live_catalog),
         "with_resources": sum(1 for m in live_catalog if m.resources),
     }
-    assert counts == {
-        "placeable": 503,
-        "visible_placing_any": 163,
-        "visible_disagreeing": 142,
-        "all_placing_any": 165,
-        "all_disagreeing": 144,
-        "models": 533,
-        "with_resources": 331,
-    }, (f"this unit's catalog gives {counts}, and the docs quote the values in "
-        f"the assertion. Re-derive every display_pos and Padding figure in "
-        f"CLAUDE.md, docs/STEERING.md, docs/domain-model.md and changelog.md.")
+    expected_by_profile = {
+        "QuadCortex": {
+            "placeable": 503,
+            "visible_placing_any": 163,
+            "visible_disagreeing": 142,
+            "all_placing_any": 165,
+            "all_disagreeing": 144,
+            "models": 533,
+            "with_resources": 331,
+        },
+        "QuadCortex41": {
+            "placeable": 600,
+            "visible_placing_any": 234,
+            "visible_disagreeing": 187,
+            "all_placing_any": 236,
+            "all_disagreeing": 189,
+            "models": 633,
+            "with_resources": 398,
+        },
+    }
+    expected = expected_by_profile.get(profile.__name__)
+    if expected is None:
+        pytest.skip(f"no displayPos population baseline for {profile.__name__}")
+    assert counts == expected, (
+        f"this unit's catalog gives {counts}, and the {profile.__name__} docs "
+        f"quote the values in the assertion. Re-derive every display_pos and "
+        f"Padding figure in CLAUDE.md, docs/STEERING.md, docs/domain-model.md "
+        f"and changelog.md.")

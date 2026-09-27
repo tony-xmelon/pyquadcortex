@@ -208,23 +208,26 @@ class Parameter:
     #: **This is the catalog's PREDICTION of what the screen does, and it is
     #: read twice, not proved.** Where a control is drawn is presentational, so
     #: unlike a parameter's index it is not a fact this library takes from the
-    #: file on the file's word. What is behind it: a cab read off the unit
-    #: 2026-09-11 (POSITION, DISTANCE, LEVEL, PAN) and a Solo 100 Lead read
-    #: 2026-09-15 (GAIN, BASS, MID, TREBLE, PRESENCE, MASTER, OUTPUT, where the
-    #: wire lists MASTER before PRESENCE). Two models out of the 163 that place
-    #: a VISIBLE control, and nothing re-drives it. (Counting every parameter a
-    #: model hands you, hidden ones included, it is 165 - which is the basis the
-    #: changelog's sorting recipe uses, because that is what it sorts.) A third reading that disagreed
-    #: would unseat this the way three disagreeing readings unseated the drawn
-    #: order of an option list.
+    #: file on the file's word. On CorOS 4.0.1, 163 models place a visible
+    #: control, and 142 disagree with wire order (165 and 144 counting hidden
+    #: parameters too). The 4.1.0 ModelRepo read on 2026-09-27 had 234 and 187
+    #: respectively (236 and 189 counting hidden parameters). These are catalog
+    #: populations, not screen re-measurements. The two screen readings remain
+    #: the 4.0.1 cab (2026-09-11: POSITION, DISTANCE, LEVEL, PAN) and Solo 100
+    #: Lead (2026-09-15: GAIN, BASS, MID, TREBLE, PRESENCE, MASTER, OUTPUT,
+    #: where the wire lists MASTER before PRESENCE). A third reading that
+    #: disagreed would unseat this the way three disagreeing readings unseated
+    #: the drawn order of an option list.
     #:
-    #: It still beats ignoring it: 142 of those 163 disagree with wire order (144
-    #: of 165 counting hidden parameters too), so
+    #: On 4.0.1, 142 of 163 visible placements disagree with wire order (144 of
+    #: 165 counting hidden parameters too); on 4.1.0, the corresponding counts
+    #: are 187 of 234 (189 of 236 including hidden parameters). So
     #: a caller showing ``model.parameters`` in the order it gets them is
-    #: usually showing the wrong order. But it is not a complete layout - 23
-    #: models place only SOME of their visible controls and one places two at
-    #: the same number - the Minivoicer, which does it twice, at positions 3 and
-    #: 8 - shapes no screen can literally have. So sort by it, put the unplaced
+    #: usually showing the wrong order. But it is not a complete layout. On
+    #: 4.0.1, 23 models place only SOME of their visible controls and one places
+    #: two at the same number - the Minivoicer, which does it twice, at
+    #: positions 3 and 8 - shapes no screen can literally have. These counts
+    #: have not been re-derived for 4.1.0. So sort by it, put the unplaced
     #: last, and do not drop them. Those two figures are on the VISIBLE basis;
     #: sorting ``model.parameters``, which is what the advice above does, meets
     #: 43 and 5, and the Minivoicer collides three times there.
@@ -261,8 +264,9 @@ class Parameter:
     #: ``Clean,Crunch,Lead`` and one not, offering ``Normal,OD``, and the screen
     #: draws the second only.
     #:
-    #: **The attribute is not a boolean.** 649 parameters say ``"true"`` and one
-    #: says ``"atma"`` - the Freeze block's ``MOMENTARY`` switch. ``atma`` is the
+    #: **The attribute is not a boolean.** CorOS 4.0.1 has 649 parameters saying
+    #: ``"true"`` and CorOS 4.1.0 has 795; each has one ``"atma"`` - the Freeze
+    #: block's ``MOMENTARY`` switch. ``atma`` is the
     #: Quad Cortex Mini's ``device_type``, so the catalog is naming the MODEL a
     #: parameter is hidden on, and this field answers only for a Quad Cortex.
     #: The raw string is NOT kept - this is a bool - so a Mini profile wanting
@@ -568,11 +572,11 @@ class Model:
     #: Ids of older models this one supersedes (the XML ``replaces`` attribute).
     replaces: tuple[int, ...] = ()
     #: What this block reserves, from the XML's ``<Padding>`` child, keyed by
-    #: the catalog's OWN attribute names. How many of the 331 padded models
+    #: the catalog's OWN attribute names. How many of the 331 4.0.1 padded models
     #: carry each: ``sw`` 330, ``cpu`` 307, ``dm_heap`` 286, ``pm_heap`` 219,
     #: ``dm`` 126, ``sd_heap`` 19, and ``pm``, ``nw`` and ``dm_hp`` on one model
-    #: each. 331 of 533 models carry a ``<Padding>``; this is empty for the 202
-    #: that do not.
+    #: each. 331 of 533 models carry a ``<Padding>`` on 4.0.1; 398 of 633 do on
+    #: 4.1.0. This is empty for the remaining models.
     #:
     #: **The names are the device's and the meaning is not measured.** They read
     #: as DSP resource reservations and they behave like one: a grid that

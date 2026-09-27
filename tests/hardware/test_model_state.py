@@ -204,16 +204,19 @@ def test_the_burst_warms_identity_from_connects_own_version_read(
     Control, section 4.4), and the ``UPDATE`` carrying
     ``cortex_control_version_valid`` that answers our announce (+0.73 s). The
     same three shapes were captured on CorOS 4.1.0 on 2026-09-11, at
-    +0.8476 s, +0.8484 s and +0.8982 s. Four narrower 4.1.0 observation windows
-    on 2026-09-04 did not include the last shape before their windows ended;
-    neither observation establishes a profile-specific difference.
+    +0.8476 s, +0.8484 s and +0.8982 s. Two fresh CorOS 4.1.0 connections on
+    2026-09-27 instead delivered only the full reply and the unit's own READ;
+    both still completed the state burst. The announce acknowledgement is
+    therefore optional in this assertion, on every profile: neither a missing
+    acknowledgement nor the earlier 4.1.0 observation establishes a firmware
+    rule. See the dated protocol note.
     ``_hello`` itself still sends no READ; the 2026-08-27 measurement of one
     inbound ``Version`` stands for ``_hello`` alone.
 
     Asserted by SHAPE rather than by count, because a unit that was still
     booting makes ``connect()`` retry its identity READ, and each retry adds a
     full reply plus the unit's own READ - a healthy run that a bare ``== 3``
-    would call a regression. So: exactly one announce answer, at least one full
+    would call a regression. So: at most one announce answer, at least one full
     reply, and one unit READ per full reply, and nothing else. A message of any
     other shape (the handshake changed under us) or no full reply at all
     (connect stopped reading identity, and with no READ the unit asks nothing
@@ -228,8 +231,8 @@ def test_the_burst_warms_identity_from_connects_own_version_read(
                  if s[0] == pa.MessageAction.READ and s[1] == {"action"}]
     announce = [s for s in shapes if "cortex_control_version_valid" in s[1]]
     record_property("identity_reads", len(full))
-    assert len(announce) == 1, (
-        f"the profile sent {len(announce)} announce answers, not the measured one. "
+    assert len(announce) <= 1, (
+        f"the profile sent {len(announce)} announce answers, expected at most one. "
         f"Shapes seen: {shapes}")
     assert full, (
         f"no full Version reply reached the listener: connect() stopped reading "
@@ -238,7 +241,7 @@ def test_the_burst_warms_identity_from_connects_own_version_read(
     assert len(own_reads) == len(full), (
         f"{len(full)} full replies but {len(own_reads)} unit READs; the unit asks "
         f"its own question once per answer (protocol.md 4.4). Shapes: {shapes}")
-    assert len(shapes) == len(full) + len(own_reads) + 1, (
+    assert len(shapes) == len(full) + len(own_reads) + len(announce), (
         f"a Version of a shape this test does not know arrived - the handshake "
         f"changed under us. Shapes: {shapes}")
     assert set(burst_warmed["identity"]) == {"device_serial_number", "app_fw_version"}, (
