@@ -39,7 +39,8 @@ def test_create_and_delete_an_empty_disposable_setlist(qc, profile):
     state and does not replay the persistent write.
     """
     operations = ("create_setlist", "delete_setlist")
-    if any(name not in profile.VERIFIED for name in operations):
+    if ("4.1.0" not in profile.MEASURED_ON
+            or any(name not in profile.VERIFIED for name in operations)):
         pytest.skip(f"setlist writes are not VERIFIED on {profile.__name__}")
 
     from pyquadcortex.protocol.client import USER_SETLIST_ROOT
