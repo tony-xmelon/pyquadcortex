@@ -964,6 +964,16 @@ def _report_lines(cls, outcomes, claimed):
     failed = {op for op, seen in outcomes.items() if "failed" in seen}
     verified = (set(cls.operations()) if cls.VERIFIED is EVERYTHING
                 else set(cls.VERIFIED))
+    # The base profile uses EVERYTHING for its measured 4.0.1 operations, but
+    # a newly added base method can still be wrapped as unverified so the
+    # hardware suite's Support.EXPERIMENTAL path can measure it. Do not report
+    # that wrapper as already VERIFIED merely because EVERYTHING contains all
+    # names; a successful run should appear as a candidate instead.
+    unverified = {
+        name for name in cls.operations()
+        if getattr(getattr(cls, name, None), "_unverified", False)
+    }
+    verified.difference_update(unverified)
     return [
         ("passed", sorted(passed), ""),
         ("failed or skipped", sorted(not_passed), ""),

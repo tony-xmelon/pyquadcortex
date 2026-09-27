@@ -150,6 +150,24 @@ def test_a_regression_is_only_an_operation_some_test_claims(conftest):
         "a profile that verifies everything can have no candidates")
 
 
+def test_a_guarded_base_operation_is_a_candidate_not_already_verified(conftest):
+    """EVERYTHING does not erase the guard on a newly added base method.
+
+    ``preset_screenshot`` is executable under the hardware suite's
+    ``Support.EXPERIMENTAL`` path, but no 4.0.1 evidence exists yet. A passing
+    measurement should be listed as a candidate, not disappear as already
+    verified just because the base profile's sentinel contains every name.
+    """
+    from pyquadcortex.protocol.client import QuadCortex
+
+    outcomes = {"preset_screenshot": ["passed"]}
+    lines = dict(_named(conftest._report_lines(
+        QuadCortex, outcomes, claimed={"preset_screenshot"})))
+
+    assert "preset_screenshot" in lines["passed, not VERIFIED"]
+    assert lines["VERIFIED and claimed by a test, failed"] == []
+
+
 def test_a_skipped_test_is_not_a_regression(conftest):
     """Measured on the first post-merge run, 2026-09-07: the bypass echo test
     skipped ("no stored bypass entry") and the report called set_bypass a
