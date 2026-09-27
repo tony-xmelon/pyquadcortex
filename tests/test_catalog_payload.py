@@ -197,3 +197,22 @@ def test_every_payload_records_which_unit_produced_it(payload):
         assert owners not in raw, (
             f"{owners} identifies a unit's owner, not its firmware; "
             f"it does not belong in a committed record")
+
+
+def test_editor_metadata_fixture_regenerates_from_the_committed_payload():
+    """The evidence fixture is reproducible from its committed ModelRepo.
+
+    The extraction script is the authority for the fixture's complete shape;
+    pinning only selected counts would let individual raw evidence rows drift.
+    """
+    payload = REPO / "tests/fixtures/catalog/model_repo_coros_4_0_1.bin"
+    fixture = REPO / "tests/fixtures/catalog/editor_metadata.json"
+    generated = _script("extract_editor_metadata_fixture").extract(
+        payload.read_bytes())
+    expected = json.dumps(generated, indent=2) + "\n"
+    committed = fixture.read_text(encoding="utf-8")
+    assert committed == expected, (
+        "editor_metadata.json no longer matches the committed ModelRepo payload; "
+        "regenerate it with `python scripts/extract_editor_metadata_fixture.py "
+        "--payload tests/fixtures/catalog/model_repo_coros_4_0_1.bin`. "
+        "Never edit this derived evidence fixture by hand.")

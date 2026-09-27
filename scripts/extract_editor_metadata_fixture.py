@@ -38,14 +38,8 @@ def _row(model, index, parameter):
     }
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--payload", required=True)
-    parser.add_argument(
-        "--out", default="tests/fixtures/catalog/editor_metadata.json")
-    args = parser.parse_args()
-
-    payload = pathlib.Path(args.payload).read_bytes()
+def extract(payload: bytes) -> dict:
+    """Build the committed evidence shape from one raw ModelRepo payload."""
     root = ET.fromstring(catalog._extract_xml(payload))
     models = list(root.iter("Model"))
     all_parameters = [
@@ -150,9 +144,24 @@ def main():
         },
     }
 
+    return fixture
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--payload", required=True)
+    parser.add_argument(
+        "--out", default="tests/fixtures/catalog/editor_metadata.json")
+    args = parser.parse_args()
+
+    payload = pathlib.Path(args.payload).read_bytes()
+    fixture = extract(payload)
     out = pathlib.Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+    midpoint_rows = fixture["mid_string"]["rows"]
+    collision_rows = fixture["displayPos"]["collision_models"]
+    self_references = fixture["toggle"]["self_references"]
     print(
         f"wrote {len(midpoint_rows)} midpoint rows, "
         f"{len(collision_rows)} collision models, and "
