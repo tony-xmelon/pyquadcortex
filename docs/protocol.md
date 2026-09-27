@@ -2277,6 +2277,6 @@ wire, with no independent read-back.
 - **Cross-setlist moves**, downloads and plugin folders (`SetlistPosition.is_downloads`,
   `is_plugin`), the IR payload format, and bulk operations are present in the
   schema and unobserved.
-- **About half the schema's 71 message types** have never been seen on the wire
+- **About half the schema's 73 message types** have never been seen on the wire
   by this project. Their field layouts are known from the schema; their behaviour
   is not.
