@@ -19,11 +19,11 @@ sustained stretch without a correction.
 
 `QuadCortex41` now binds a generated CorOS 4.1.0 snapshot containing 422 factory
 models and its firmware-specific parameter and option constants. Contributor
-hardware runs on 2026-09-11 verified 15 inherited operations; the independently
-captured local-backup operation and contributed device-name round trip are
-retained as the sixteenth and seventeenth verified methods. `read_current_preset`
-was measured only with the separate #62 retry change, so it remains guarded
-until that dependency lands.
+hardware runs on 2026-09-11 verified 16 inherited operations. The later #62
+profile change removed `read_current_preset` from this profile's `VERIFIED`
+set until that dependency lands, leaving 15 inherited operations currently
+verified. The independently captured local-backup operation and contributed
+device-name round trip are the sixteenth and seventeenth verified methods.
 Unversioned `protocol.models`, `params`, and `options` remain the CorOS 4.0.1
 compatibility snapshot.
 
