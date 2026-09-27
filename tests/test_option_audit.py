@@ -301,7 +301,7 @@ def test_the_document_quotes_the_same_counts():
     text = " ".join(doc.read_text(encoding="utf-8").split())
     counts = collections.Counter(options.OPTION_AUDIT.values())
     phrase = (f"{counts['audited']} audited, {counts['drawn']} drawn, "
-              f"{counts['absent']} not drawn, {counts[None]} unread")
+              f"{counts['absent']} absent, {counts[None]} unread")
     assert phrase in text, (
         f"docs/domain-model.md does not say {phrase!r}. The audit moved and the "
         f"document did not; they are updated in the same commit.")
@@ -388,7 +388,18 @@ def test_the_document_quotes_the_same_parameter_counts():
         (pathlib.Path(__file__).parents[1] / "docs" / "domain-model.md")
         .read_text(encoding="utf-8").split())
     read = per_status["audited"] + per_status["drawn"]
-    for phrase in (f"cover {read} of the 611", f"unread cover {per_status[None]}"):
+    read_lists = sum(status in ("audited", "drawn")
+                     for status in options.OPTION_AUDIT.values())
+    absent = per_status["absent"]
+    absent_lists = sum(status == "absent"
+                       for status in options.OPTION_AUDIT.values())
+    unread = per_status[None]
+    unread_lists = sum(status is None
+                       for status in options.OPTION_AUDIT.values())
+    for phrase in (
+            f"{read_lists} assessed lists cover {read} parameters",
+            f"{absent_lists} lists looked for and not drawn account for {absent}",
+            f"{unread_lists} unread lists account for {unread} of the 611"):
         assert phrase in text, (
             f"docs/domain-model.md does not say {phrase!r}. The parameter "
             f"counts moved and the document did not.")

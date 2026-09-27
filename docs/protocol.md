@@ -1974,9 +1974,10 @@ The XML is `<Models><Category id name><Model id name .../></Category></Models>`.
   `defaultValue`, `units`, `skew`, `steps`, `stepNames`, `type` and more. This is
   what gives a parameter index meaning. A model may declare `clones`; numeric
   parameter `replaces` values place child metadata at inherited indexes and
-  child-only parameters extend the layout. Read-only CorOS 4.1 checks confirmed
-  the 21/31-parameter cab parent layouts and the cloned `Gojira REV` ordering; the
-  maintainer independently confirmed the same shapes on CorOS 4.0.1.
+  child-only parameters extend the layout. Read-only CorOS 4.1.0 checks by
+  Antoni Ivanov on 2026-09-08 confirmed the 21/31-parameter cab parent layouts
+  and the cloned `Gojira REV` ordering; Jonathan Stokes independently confirmed
+  the same shapes on CorOS 4.0.1 on 2026-09-09.
 - **Parameter values on the wire are normalized 0..1.** Sending `1.0` to a
   `THRESHOLD` whose catalog range is -60..+12 dB made the unit display +12.0 dB.
 
