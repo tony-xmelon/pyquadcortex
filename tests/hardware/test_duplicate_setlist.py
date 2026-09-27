@@ -6,25 +6,31 @@ import uuid
 import pytest
 
 
-FOLDER_LIST_TIMEOUT = 20.0
+def _stable_folders(qc, *, timeout=120.0):
+    # The firmware can publish partial generations. Use the same convergence
+    # rule as duplicate_setlist before making inventory or cleanup decisions.
+    return qc._stable_folder_listing(timeout=timeout, interval=1.0)
 
 
 def _folder(qc, key):
-    return next((item for item in qc.list_folders(seconds=FOLDER_LIST_TIMEOUT)
+    return next((item for item in _stable_folders(qc)
                  if item.key.rstrip("/") == key.rstrip("/")), None)
 
 
 def _wait_for_folder(qc, key, *, present, timeout=90.0):
     deadline = time.monotonic() + timeout
     while True:
-        result = _folder(qc, key)
-        if (result is not None) is present:
-            return result
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             state = "appear" if present else "disappear"
             raise AssertionError(
                 f"test-owned setlist {key!r} did not {state} within {timeout}s")
+        result = next((item for item in _stable_folders(
+            qc, timeout=remaining)
+            if item.key.rstrip("/") == key.rstrip("/")), None)
+        if (result is not None) is present:
+            return result
+        remaining = deadline - time.monotonic()
         time.sleep(min(2.0, remaining))
 
 
@@ -66,9 +72,7 @@ def test_duplicate_setlist_copies_a_disposable_empty_setlist(qc, profile):
             f"new disposable source unexpectedly contains presets: {source!r}; "
             "refusing to duplicate or delete it")
 
-        copy_baseline = {
-            item.key for item in qc.list_folders(seconds=FOLDER_LIST_TIMEOUT)
-        }
+        copy_baseline = {item.key for item in _stable_folders(qc)}
         assert source_key in copy_baseline, (
             "source disappeared before COPY preflight; refusing to send")
 
@@ -81,7 +85,7 @@ def test_duplicate_setlist_copies_a_disposable_empty_setlist(qc, profile):
             f"duplicate of an empty source is unexpectedly occupied: {destination!r}")
     finally:
         if create_attempted:
-            folders = qc.list_folders(seconds=FOLDER_LIST_TIMEOUT)
+            folders = _stable_folders(qc)
             source_key_normalized = source_key.rstrip("/")
             destination_key = (destination.key.rstrip("/")
                                if destination is not None else None)
@@ -103,6 +107,7 @@ def test_duplicate_setlist_copies_a_disposable_empty_setlist(qc, profile):
                             and _is_user_setlist_key(item.key)
                             and not item.is_factory]
 
+            deleted_keys = set()
             for item in reversed(owned):
                 if item.occupied != 0:
                     pytest.fail(
@@ -111,10 +116,15 @@ def test_duplicate_setlist_copies_a_disposable_empty_setlist(qc, profile):
                 # Do not replay DELETE if read-back is uncertain; report the
                 # exact empty test folder still present instead.
                 qc.delete_setlist(item.name)
-                if _folder(qc, item.key) is not None:
+                deleted_keys.add(item.key.rstrip("/"))
+            if deleted_keys:
+                remaining = {item.key.rstrip("/")
+                             for item in _stable_folders(qc)}
+                leftovers = sorted(deleted_keys & remaining)
+                if leftovers:
                     pytest.fail(
-                        f"DELETE was not confirmed for disposable test folder "
-                        f"{item.key!r}; it was not sent a second time")
+                        "DELETE was not confirmed for disposable test folders "
+                        f"{leftovers!r}; none was sent a second time")
             if unidentified:
                 names = ", ".join(
                     f"{item.name!r} ({item.key!r})" for item in unidentified)
