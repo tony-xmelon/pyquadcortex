@@ -18,12 +18,12 @@ Source: a device's ModelRepo payload, either live or previously saved.
 
 Four decisions this generator makes:
 
-1. **One enum per distinct LIST, not per parameter.** 527 parameters carry a
+1. **One enum per distinct LIST, not per parameter.** 611 parameters carry a
    fixed list and they use only 113 distinct ones, of which 110 get an enum,
    because the same list means the same thing everywhere: the note-length list is shared by ``SYNC NOTE``,
    ``SYNC NOTE L``, ``SYNC NOTE R``, ``SYNC NOTE A`` and ``SYNC NOTE B``. One
    enum per list is one enum per concept.
-2. **``Off,On`` gets no enum.** 247 of those 527 offer exactly "Off" and "On",
+2. **``Off,On`` gets no enum.** 303 of those 611 offer exactly "Off" and "On",
    and ``OffOn.ON`` says nothing that ``True`` does not. Those parameters take a
    bool.
 3. **The device's spelling is kept on the wire and corrected in the name.**
@@ -542,7 +542,7 @@ def collect_all(cat: catalog.ModelCatalog) -> dict:
     Every one, including the two that become a bool and the one already
     published by hand. ``OPTION_AUDIT`` covers these rather than only the
     enums: a list with no enum is still a list whose words nobody has checked,
-    and the Off/On pair alone is 247 parameters. Counting only the enums would
+    and the Off/On pair alone is 303 parameters. Counting only the enums would
     report the job as smaller than it is.
     """
     lists = collections.defaultdict(list)
