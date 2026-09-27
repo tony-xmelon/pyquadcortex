@@ -35,8 +35,6 @@ UNMARKED_OPERATIONS = {
     "read_preset": "the undo/redo test reads its scratch copy to choose an edit, but verifies the history result rather than the read operation itself",
     "find_preset": "no hardware test yet; it needs a name that exists on the unit, which the loaded preset supplies - just not written",
     "wait_for_listing": "no hardware test yet; it is the polling wrapper round list_presets and says nothing until a write changes a listing",
-    "create_setlist": "no hardware test yet; it adds a folder to the owner's Directory that a failed run would leave behind",
-    "delete_setlist": "no hardware test yet; it deletes a folder and everything in it, which is the one preset-library mistake nothing can undo",
     "duplicate_setlist": "no hardware test yet; it copies a whole setlist preset by preset, so a failed run leaves a partial folder behind",
 
     # -- library listings whose CONTENT belongs to the owner -------------------
