@@ -44,10 +44,11 @@ generated bindings in `pyquadcortex/protocol/proto/`), the recovered schema in
   which users install themselves (see the README).
 - **PyPI.** Published as `pyquadcortex` with the `qcctl` console script. Release
   process in [`releasing.md`](releasing.md).
-- **The lab repository.** Planning material, raw USB captures, the catalog dump,
-  and the narrative history behind the documents here live in the private
-  `quad-cortex` repository. This repository carries the library and its
-  engineering documents.
+- **The lab repository.** Planning material, raw USB captures and the narrative
+  history behind the documents here live in the private `quad-cortex`
+  repository. This repository carries the library, its engineering documents,
+  and the `ModelRepo` payloads its catalog snapshots are generated from
+  (`tests/fixtures/catalog/`, ADR-0022).
 
 ## 3. Architecture Overview
 
@@ -242,6 +243,17 @@ behind each one is in the lab repository,
   operation-specific evidence on this branch.
 - **Scope:** protocol client/profile, screen tests and API/protocol/coverage
   documentation. See ADR-0024 for atomic gesture timing.
+### 2026-09-22 - A snapshot's input is committed beside it (ADR-0022)
+
+- **What changed:** the `ModelRepo` payload the 4.0.1 snapshot is generated from
+  is committed, with a provenance record and a test regenerating each snapshot
+  from its own payload. Section 2 corrected.
+- **Why:** regenerating needed the one unit on that firmware, blocking #45.
+- **Scope:** `tests/fixtures/catalog/`, `tests/test_catalog_payload.py`,
+  `.gitattributes`, `CLAUDE.md`, `ADR.md`, `architecture.md`, `protocol.md`,
+  sections 2 and 7 here, and docstrings in `extract_scale_fixture.py` and three
+  hardware tests that named the catalog's absence. Left alone: `domain-model.md`.
+  No library code, no generated file.
 
 ### 2026-09-21 - The hardware suite puts the edited flag back
 
