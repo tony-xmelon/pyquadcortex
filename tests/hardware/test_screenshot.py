@@ -20,7 +20,9 @@ def test_current_preset_screenshot_has_the_observed_png_dimensions(qc, profile):
     png = qc.preset_screenshot(folder_name, before.position, before.is_factory)
 
     assert png[:8] == b"\x89PNG\r\n\x1a\n"
-    assert struct.unpack(">II", png[16:24]) in {(800, 384), (800, 480)}
+    assert struct.unpack(">II", png[16:24]) == (800, 480), (
+        "the currently loaded slot must use the live physical-screen capture, "
+        "including when the slot is empty")
     assert png.endswith(b"IEND\xaeB\x60\x82")
     after = qc.loaded_position()
     assert after.folder_key == before.folder_key
