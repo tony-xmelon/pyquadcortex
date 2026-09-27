@@ -5,17 +5,20 @@ import uuid
 
 import pytest
 
+FOLDER_LIST_TIMEOUT = 20.0
 
-def _folder_named(qc, key, *, seconds=10.0):
+
+def _folder_named(qc, key, *, seconds=FOLDER_LIST_TIMEOUT):
     return next((folder for folder in qc.list_folders(seconds=seconds)
                  if folder.key.rstrip("/") == key.rstrip("/")), None)
 
 
-def _wait_for_folder(qc, key, *, present, timeout=60.0):
+def _wait_for_folder(qc, key, *, present, timeout=90.0):
     deadline = time.monotonic() + timeout
     while True:
-        folder = _folder_named(qc, key, seconds=min(10.0, max(
-            1.0, deadline - time.monotonic())))
+        # A complete device listing can take about fifteen seconds; do not
+        # cut it off at ten and mistake a slow generation for a missing folder.
+        folder = _folder_named(qc, key)
         if (folder is not None) is present:
             return folder
         remaining = deadline - time.monotonic()
@@ -70,7 +73,7 @@ def test_create_and_delete_an_empty_disposable_setlist(qc, profile):
         if create_attempted and not delete_attempted:
             # CREATE may have committed before an error. Cleanup is allowed only
             # after a fresh listing confirms this exact unique folder is empty.
-            folder = _folder_named(qc, key, seconds=20.0)
+            folder = _folder_named(qc, key)
             if folder is not None:
                 if folder.occupied != 0:
                     pytest.fail(
@@ -82,7 +85,7 @@ def test_create_and_delete_an_empty_disposable_setlist(qc, profile):
         if delete_attempted and not deleted:
             # An uncertain DELETE is never replayed: tell the operator exactly
             # which empty test folder may need manual cleanup.
-            folder = _folder_named(qc, key, seconds=10.0)
+            folder = _folder_named(qc, key)
             if folder is not None:
                 pytest.fail(
                     f"DELETE result was not confirmed; disposable folder "
