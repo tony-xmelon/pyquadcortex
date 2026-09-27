@@ -273,7 +273,9 @@ def test_preset_screenshot_accepts_a_display_slot_name():
     assert fake.sent[-1].index == 218
 
 
-def test_loaded_slot_uses_live_screen_without_waiting_for_a_preset_screenshot():
+def test_loaded_empty_slot_uses_live_screen_without_waiting_for_a_preset_screenshot():
+    # The selected slot has no saved preset, so the stored-preset Screenshot
+    # request would never reply. The physical display is still capturable.
     fake = FakeTransport()
     qc = _screenshot_client(fake)
     qc.loaded_position = lambda timeout: type("Position", (), {
